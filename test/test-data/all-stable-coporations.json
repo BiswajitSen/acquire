@@ -1,0 +1,557 @@
+{
+  "setupTiles": [
+    [
+      "player",
+      {
+        "position": {
+          "x": 1,
+          "y": 1
+        },
+        "isPlaced": true
+      }
+    ]
+  ],
+  "players": [
+    {
+      "username": "player",
+      "portfolio": {
+        "tiles": [
+          {
+            "position": {
+              "x": 6,
+              "y": 6
+            },
+            "isPlaced": false
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 10
+            },
+            "isPlaced": false
+          },
+          {
+            "position": {
+              "x": 4,
+              "y": 2
+            },
+            "isPlaced": false
+          },
+          {
+            "position": {
+              "x": 8,
+              "y": 9
+            },
+            "isPlaced": false
+          },
+          {
+            "position": {
+              "x": 2,
+              "y": 4
+            },
+            "isPlaced": false
+          },
+          {
+            "position": {
+              "x": 1,
+              "y": 4
+            },
+            "isPlaced": false
+          }
+        ],
+        "stocks": {
+          "phoenix": 3,
+          "quantum": 0,
+          "hydra": 0,
+          "fusion": 0,
+          "america": 0,
+          "sackson": 0,
+          "zeta": 0
+        },
+        "balance": 4800
+      }
+    }
+  ],
+  "corporations": {
+    "phoenix": {
+      "name": "phoenix",
+      "basePrice": 300,
+      "stocks": 15,
+      "size": 0,
+      "isActive": false,
+      "isSafe": false
+    },
+    "quantum": {
+      "name": "quantum",
+      "basePrice": 300,
+      "stocks": 21,
+      "size": 12,
+      "isActive": true,
+      "isSafe": true
+    },
+    "fusion": {
+      "name": "fusion",
+      "basePrice": 200,
+      "stocks": 21,
+      "size": 19,
+      "isActive": true,
+      "isSafe": true
+    },
+    "hydra": {
+      "name": "hydra",
+      "basePrice": 200,
+      "stocks": 25,
+      "size": 0,
+      "isActive": false,
+      "isSafe": false
+    },
+    "america": {
+      "name": "america",
+      "basePrice": 200,
+      "stocks": 21,
+      "size": 0,
+      "isActive": false,
+      "isSafe": false
+    },
+    "zeta": {
+      "name": "zeta",
+      "basePrice": 100,
+      "stocks": 21,
+      "size": 7,
+      "isActive": true,
+      "isSafe": false
+    },
+    "sackson": {
+      "name": "sackson",
+      "basePrice": 100,
+      "stocks": 25,
+      "size": 0,
+      "isActive": false,
+      "isSafe": false
+    }
+  },
+  "placedTiles": [
+    {
+      "position": {
+        "x": 6,
+        "y": 3
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 7
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 1
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 1,
+        "y": 6
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 2,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 1,
+        "y": 7
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 2,
+        "y": 1
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 3
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 10
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 5,
+        "y": 11
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 1
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 10
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 1,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 9
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 11
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 0,
+        "y": 6
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 7
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 2
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 6
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 6
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 0,
+        "y": 7
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 1
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 3
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 2,
+        "y": 6
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 5
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 10
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 4
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 3
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 1,
+        "y": 0
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 5
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 2
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 1,
+        "y": 3
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 0
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 0
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 7
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 9
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 8,
+        "y": 2
+      },
+      "isPlaced": true,
+      "belongsTo": "quantum"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 2
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 0,
+        "y": 11
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    },
+    {
+      "position": {
+        "x": 2,
+        "y": 9
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 8
+      },
+      "isPlaced": true,
+      "belongsTo": "zeta"
+    },
+    {
+      "position": {
+        "x": 3,
+        "y": 11
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 2,
+        "y": 11
+      },
+      "isPlaced": true,
+      "belongsTo": "fusion"
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 5
+      },
+      "isPlaced": true,
+      "belongsTo": "incorporated"
+    }
+  ],
+  "tiles": [
+    { "position": { "x": 4, "y": 2 }, "isPlaced": false },
+    { "position": { "x": 8, "y": 11 }, "isPlaced": false },
+    { "position": { "x": 0, "y": 9 }, "isPlaced": false },
+    { "position": { "x": 6, "y": 11 }, "isPlaced": false },
+    { "position": { "x": 7, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 7 }, "isPlaced": false },
+    { "position": { "x": 8, "y": 8 }, "isPlaced": false },
+    { "position": { "x": 8, "y": 7 }, "isPlaced": false },
+    { "position": { "x": 6, "y": 10 }, "isPlaced": false },
+    { "position": { "x": 2, "y": 0 }, "isPlaced": false },
+    { "position": { "x": 3, "y": 6 }, "isPlaced": false },
+    { "position": { "x": 0, "y": 3 }, "isPlaced": false },
+    { "position": { "x": 1, "y": 10 }, "isPlaced": false },
+    { "position": { "x": 1, "y": 2 }, "isPlaced": false },
+    { "position": { "x": 3, "y": 3 }, "isPlaced": false },
+    { "position": { "x": 0, "y": 1 }, "isPlaced": false },
+    { "position": { "x": 7, "y": 4 }, "isPlaced": false },
+    { "position": { "x": 1, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 4 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 3 }, "isPlaced": false },
+    { "position": { "x": 6, "y": 0 }, "isPlaced": false },
+    { "position": { "x": 7, "y": 0 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 9 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 6 }, "isPlaced": false },
+    { "position": { "x": 3, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 2, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 0, "y": 5 }, "isPlaced": false },
+    { "position": { "x": 7, "y": 9 }, "isPlaced": false },
+    { "position": { "x": 2, "y": 2 }, "isPlaced": false },
+    { "position": { "x": 6, "y": 9 }, "isPlaced": false },
+    { "position": { "x": 4, "y": 0 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 1 }, "isPlaced": false },
+    { "position": { "x": 1, "y": 9 }, "isPlaced": false },
+    { "position": { "x": 7, "y": 11 }, "isPlaced": false },
+    { "position": { "x": 0, "y": 2 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 2 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 8 }, "isPlaced": false },
+    { "position": { "x": 2, "y": 10 }, "isPlaced": false },
+    { "position": { "x": 5, "y": 10 }, "isPlaced": false },
+    { "position": { "x": 4, "y": 7 }, "isPlaced": false },
+    { "position": { "x": 2, "y": 7 }, "isPlaced": false },
+    { "position": { "x": 4, "y": 6 }, "isPlaced": false },
+    { "position": { "x": 8, "y": 4 }, "isPlaced": false }
+  ]
+}

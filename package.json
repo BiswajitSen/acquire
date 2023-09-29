@@ -1,0 +1,31 @@
+{
+  "name": "y",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "setup": "./bin/setup.sh",
+    "start": "node server.js",
+    "start-dev": "node puppet.js",
+    "dev": "node --watch server.js",
+    "lint": "eslint .",
+    "test": "node --test",
+    "coverage": "nyc npm run test"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "eslint": "^8.50.0",
+    "nyc": "^15.1.0",
+    "supertest": "^6.3.3"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "lodash": "^4.17.21"
+  }
+}

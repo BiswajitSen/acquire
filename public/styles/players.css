@@ -1,0 +1,64 @@
+#players {
+  grid-area: "players";
+  padding: 0 0.5em;
+  flex-grow: 1;
+  background-color: var(--mid-gray);
+}
+
+.player:not([hidden]) {
+  width: fit-content;
+  height: 1.3em;
+  gap: 0.5em;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 1em;
+  align-items: center;
+  border-left: 1.5px solid var(--light-gray);
+}
+
+.player:not([hidden]):first-child {
+  border-left: none;
+}
+
+.player:not([hidden]) .avatar {
+  height: 40px;
+  aspect-ratio: 1;
+  background-color: #f3f5f6;
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 1px 1px 2px #787878;
+}
+
+.player:not([hidden]) .name {
+  letter-spacing: 0.03em;
+  color: var(--light-gray);
+  display: flex;
+  align-items: center;
+}
+
+.player:not([hidden]).active {
+  height: 100%;
+  border: 0.3em solid var(--mid-gray);
+  background-color: var(--light-gray);
+  border-bottom: none;
+  border-radius: 15px 15px 0 0;
+}
+
+.player:not([hidden]).active + .player:not([hidden]) {
+  border: none;
+}
+
+.player:not([hidden]).active .name {
+  color: var(--dark-gray);
+}
+
+.player:not([hidden]).self .name::after {
+  width: fit-content;
+  color: white;
+  content: "You";
+  font-size: 0.6em;
+  background-color: var(--dark-gray);
+  margin: 0.2em;
+  padding: 0.2em 0.5em;
+  border-radius: 10px;
+}

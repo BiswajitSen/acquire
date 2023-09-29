@@ -1,0 +1,26 @@
+#root {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  gap: 8em;
+  grid-template-rows: 12% 88%;
+  grid-template-areas: "header" "page";
+}
+
+#page-header {
+  grid-area: "header";
+  padding: 0.5em;
+  display: grid;
+  place-content: center;
+  background-color: var(--light-gray);
+}
+
+#page-header > #heading {
+  font-size: 2em;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+}
+
+#page {
+  grid-area: "page";
+}

@@ -1,0 +1,20 @@
+#page {
+  display: grid;
+  justify-content: center;
+  align-items: start;
+}
+
+#join-form {
+  font-size: 1.2em;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 0.8em;
+  padding: 1em;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
+
+#message.error {
+  color: rgb(142, 66, 66);
+}

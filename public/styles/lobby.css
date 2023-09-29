@@ -1,0 +1,61 @@
+#page {
+  text-align: center;
+  display: grid;
+  align-content: start;
+  justify-content: center;
+}
+
+#room-info {
+  padding: 1em;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+  display: grid;
+  gap: 1em;
+}
+
+#message {
+  font-weight: 400;
+  font-size: 1.2em;
+}
+
+#players {
+  list-style-type: none;
+  display: flex;
+  gap: 1em;
+}
+
+#players .player {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5em;
+  align-items: center;
+  justify-content: center;
+}
+
+#players .profile-picture {
+  height: 3em;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+}
+
+#players .player:not(.joined) .profile-picture {
+  border: 1px dashed var(--mid-gray);
+  color: var(--mid-gray);
+}
+
+#players .player:not(.joined) .profile-picture::before {
+  content: "+";
+}
+
+#players .player.joined .profile-picture {
+  background-color: var(--gray);
+}
+
+#players .name {
+  min-height: 1.4em;
+  min-width: 4em;
+  background-color: var(--gray);
+  border-radius: 5px;
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Acquire</title>
+    <script type="module">
+      import { minidenticonSvg } from "https://cdn.jsdelivr.net/npm/minidenticons@4.2.0/minidenticons.min.js";
+    </script>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/game.css" />
+    <link rel="stylesheet" href="/styles/players.css" />
+    <link rel="stylesheet" href="/styles/display-panel.css" />
+    <script src="/scripts/utils.js"></script>
+    <script src="/scripts/purchase.js"></script>
+    <script src="/scripts/game.js" type="module"></script>
+  </head>
+
+  <body>
+    <div id="root">
+      <header id="game-header">
+        <div id="game-title">ACQUIRE</div>
+      </header>
+      <section id="corporation-section">
+        <header>
+          <p>CORPORATION</p>
+          <div id="info-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 50 50"
+              width="25px"
+              height="25px"
+              fill="#d0d0d0"
+            >
+              <path
+                d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"
+              />
+            </svg>
+          </div>
+        </header>
+        <div id="corporations">
+          <div class="corporation" id="phoenix">
+            <div class="name">Phoenix</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/phoenix.png" alt="phoenix" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="quantum">
+            <div class="name">Quantum</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/quantum.png" alt="quantum" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="hydra">
+            <div class="name">Hydra</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/hydra.png" alt="hydra" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="fusion">
+            <div class="name">Fusion</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/fusion.png" alt="fusion" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="america">
+            <div class="name">America</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/america.png" alt="america" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="sackson">
+            <div class="name">Sackson</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/sackson.png" alt="sackson" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+          <div class="corporation" id="zeta">
+            <div class="name">Zeta</div>
+            <div class="info">
+              <div class="icon">
+                <img src="/images/zeta.png" alt="zeta" />
+              </div>
+              <div class="details">
+                <div class="stocks">25</div>
+                <div class="size">0</div>
+                <div class="price">$0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="portfolio-section">
+        <header class="portfolio-header">PORTFOLIO</header>
+        <section id="portfolio">
+          <section class="balance" id="balance-container">
+            <header class="label">BALANCE</header>
+            <div class="amount">0</div>
+          </section>
+          <section class="stocks">
+            <header>STOCKS</header>
+            <div id="stocks-container">
+              <div class="stock phoenix" id="phoenix-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock quantum" id="quantum-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock hydra" id="hydra-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock fusion" id="fusion-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock america" id="america-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock sackson" id="sackson-stock">
+                <div class="quantity flex"></div>
+              </div>
+              <div class="stock zeta" id="zeta-stock">
+                <div class="quantity flex"></div>
+              </div>
+            </div>
+          </section>
+          <section class="tiles">
+            <header>TILES</header>
+            <div id="tile-container" class="disable-click">
+              <div class="tile"></div>
+              <div class="tile"></div>
+              <div class="tile"></div>
+              <div class="tile"></div>
+              <div class="tile"></div>
+              <div class="tile"></div>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <div id="game-board-container">
+        <section id="game-board">
+          <div class="space"><span>1</span><span>A</span></div>
+          <div class="space"><span>2</span><span>A</span></div>
+          <div class="space"><span>3</span><span>A</span></div>
+          <div class="space"><span>4</span><span>A</span></div>
+          <div class="space"><span>5</span><span>A</span></div>
+          <div class="space"><span>6</span><span>A</span></div>
+          <div class="space"><span>7</span><span>A</span></div>
+          <div class="space"><span>8</span><span>A</span></div>
+          <div class="space"><span>9</span><span>A</span></div>
+          <div class="space"><span>10</span><span>A</span></div>
+          <div class="space"><span>11</span><span>A</span></div>
+          <div class="space"><span>12</span><span>A</span></div>
+          <div class="space"><span>1</span> <span>B</span></div>
+          <div class="space"><span>2</span><span>B</span></div>
+          <div class="space"><span>3</span><span>B</span></div>
+          <div class="space"><span>4</span><span>B</span></div>
+          <div class="space"><span>5</span><span>B</span></div>
+          <div class="space"><span>6</span><span>B</span></div>
+          <div class="space"><span>7</span><span>B</span></div>
+          <div class="space"><span>8</span><span>B</span></div>
+          <div class="space"><span>9</span><span>B</span></div>
+          <div class="space"><span>10</span><span>B</span></div>
+          <div class="space"><span>11</span><span>B</span></div>
+          <div class="space"><span>12</span><span>B</span></div>
+          <div class="space"><span>1</span><span>C</span></div>
+          <div class="space"><span>2</span><span>C</span></div>
+          <div class="space"><span>3</span><span>C</span></div>
+          <div class="space"><span>4</span><span>C</span></div>
+          <div class="space"><span>5</span><span>C</span></div>
+          <div class="space"><span>6</span><span>C</span></div>
+          <div class="space"><span>7</span><span>C</span></div>
+          <div class="space"><span>8</span><span>C</span></div>
+          <div class="space"><span>9</span><span>C</span></div>
+          <div class="space"><span>10</span><span>C</span></div>
+          <div class="space"><span>11</span><span>C</span></div>
+          <div class="space"><span>12</span><span>C</span></div>
+          <div class="space"><span>1</span><span>D</span></div>
+          <div class="space"><span>2</span><span>D</span></div>
+          <div class="space"><span>3</span><span>D</span></div>
+          <div class="space"><span>4</span><span>D</span></div>
+          <div class="space"><span>5</span><span>D</span></div>
+          <div class="space"><span>6</span><span>D</span></div>
+          <div class="space"><span>7</span><span>D</span></div>
+          <div class="space"><span>8</span><span>D</span></div>
+          <div class="space"><span>9</span><span>D</span></div>
+          <div class="space"><span>10</span><span>D</span></div>
+          <div class="space"><span>11</span><span>D</span></div>
+          <div class="space"><span>12</span><span>D</span></div>
+          <div class="space"><span>1</span><span>E</span></div>
+          <div class="space"><span>2</span><span>E</span></div>
+          <div class="space"><span>3</span><span>E</span></div>
+          <div class="space"><span>4</span><span>E</span></div>
+          <div class="space"><span>5</span><span>E</span></div>
+          <div class="space"><span>6</span><span>E</span></div>
+          <div class="space"><span>7</span><span>E</span></div>
+          <div class="space"><span>8</span><span>E</span></div>
+          <div class="space"><span>9</span><span>E</span></div>
+          <div class="space"><span>10</span><span>E</span></div>
+          <div class="space"><span>11</span><span>E</span></div>
+          <div class="space"><span>12</span><span>E</span></div>
+          <div class="space"><span>1</span><span>F</span></div>
+          <div class="space"><span>2</span><span>F</span></div>
+          <div class="space"><span>3</span><span>F</span></div>
+          <div class="space"><span>4</span><span>F</span></div>
+          <div class="space"><span>5</span><span>F</span></div>
+          <div class="space"><span>6</span><span>F</span></div>
+          <div class="space"><span>7</span><span>F</span></div>
+          <div class="space"><span>8</span><span>F</span></div>
+          <div class="space"><span>9</span><span>F</span></div>
+          <div class="space"><span>10</span><span>F</span></div>
+          <div class="space"><span>11</span><span>F</span></div>
+          <div class="space"><span>12</span><span>F</span></div>
+          <div class="space"><span>1</span><span>G</span></div>
+          <div class="space"><span>2</span><span>G</span></div>
+          <div class="space"><span>3</span><span>G</span></div>
+          <div class="space"><span>4</span><span>G</span></div>
+          <div class="space"><span>5</span><span>G</span></div>
+          <div class="space"><span>6</span><span>G</span></div>
+          <div class="space"><span>7</span><span>G</span></div>
+          <div class="space"><span>8</span><span>G</span></div>
+          <div class="space"><span>9</span><span>G</span></div>
+          <div class="space"><span>10</span><span>G</span></div>
+          <div class="space"><span>11</span><span>G</span></div>
+          <div class="space"><span>12</span><span>G</span></div>
+          <div class="space"><span>1</span><span>H</span></div>
+          <div class="space"><span>2</span><span>H</span></div>
+          <div class="space"><span>3</span><span>H</span></div>
+          <div class="space"><span>4</span><span>H</span></div>
+          <div class="space"><span>5</span><span>H</span></div>
+          <div class="space"><span>6</span><span>H</span></div>
+          <div class="space"><span>7</span><span>H</span></div>
+          <div class="space"><span>8</span><span>H</span></div>
+          <div class="space"><span>9</span><span>H</span></div>
+          <div class="space"><span>10</span><span>H</span></div>
+          <div class="space"><span>11</span><span>H</span></div>
+          <div class="space"><span>12</span><span>H</span></div>
+          <div class="space"><span>1</span><span>I</span></div>
+          <div class="space"><span>2</span><span>I</span></div>
+          <div class="space"><span>3</span><span>I</span></div>
+          <div class="space"><span>4</span><span>I</span></div>
+          <div class="space"><span>5</span><span>I</span></div>
+          <div class="space"><span>6</span><span>I</span></div>
+          <div class="space"><span>7</span><span>I</span></div>
+          <div class="space"><span>8</span><span>I</span></div>
+          <div class="space"><span>9</span><span>I</span></div>
+          <div class="space"><span>10</span><span>I</span></div>
+          <div class="space"><span>11</span><span>I</span></div>
+          <div class="space"><span>12</span><span>I</span></div>
+        </section>
+      </div>
+      <div id="players" class="flex">
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+        <div class="player" hidden>
+          <minidenticon-svg class="avatar"></minidenticon-svg>
+          <div class="name"></div>
+        </div>
+      </div>
+      <section id="display-panel">
+        <input type="button" id="history-button" value="Previous Turn" />
+        <div id="history-pane"></div>
+        <div id="activity-console"></div>
+      </section>
+      <div id="info-card" class="hide">
+        <div id="info-close-btn">×</div>
+        <img src="/images/cards/info-card.svg" alt="info-card" />
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+#activity-console {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+
+.card {
+  height: 4em;
+  /* width: 6.5em; */
+  min-width: 6.5em;
+  background-color: var(--gray);
+  border-radius: 5px;
+}
+
+.card .label {
+  font-size: 0.7em;
+  text-align: center;
+  background-color: var(--mid-gray);
+  color: var(--light-gray);
+  border-radius: 5px 5px 0 0;
+  text-transform: uppercase;
+  padding: 0 1em;
+}
+
+.card .body {
+  display: grid;
+  place-content: center;
+  height: 80%;
+}
+
+.card .body .tile {
+  scale: 0.8;
+}
+
+.card .body .corp-icon {
+  height: 3em;
+  width: 3em;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: transparent;
+}
+
+.corp-icon.phoenix {
+  background-image: url(/images/phoenix.png);
+}
+
+.corp-icon.quantum {
+  background-image: url(/images/quantum.png);
+}
+
+.corp-icon.hydra {
+  background-image: url(/images/hydra.png);
+}
+
+.corp-icon.fusion {
+  background-image: url(/images/fusion.png);
+}
+
+.corp-icon.sackson {
+  background-image: url(/images/sackson.png);
+}
+
+.corp-icon.america {
+  background-image: url(/images/america.png);
+}
+
+.corp-icon.zeta {
+  background-image: url(/images/zeta.png);
+}
+
+.merger {
+  display: flex;
+  align-items: center;
+}
+
+#display-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+#history-pane {
+  width: 0;
+  height: 100%;
+  background-color: var(--gray);
+  border-right: 1px solid #f3f5f6;
+  transition: all 1s ease;
+  display: flex;
+  align-items: center;
+  overflow-x: hidden;
+  margin-left: 1em;
+}
+
+#history-pane .card {
+  margin: 0 0.5em;
+  border: 1px solid white;
+}
+
+#history-pane.expanded {
+  width: 25em;
+  overflow-x: scroll;
+}
+
+#history-pane.expanded * {
+  filter: brightness(99%);
+}
+
+#history-button:hover {
+  cursor: pointer;
+}
+
+#history-button {
+  position: absolute;
+  bottom: 5.8rem;
+  left: 14.9rem;
+  font-size: 0.7em;
+  width: 11.25em;
+  outline: none;
+  border: 1px solid var(--mid-gray);
+  transform: rotate(90deg);
+}
+
+.stocks-purchased {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em;
+  justify-content: center;
+}
+
+.stocks-purchased .stock {
+  height: 1.2em;
+  aspect-ratio: 1.6;
+  border-radius: 2px;
+}
+
+.conflict {
+  height: 4em;
+  width: 4em;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: transparent;
+}
+
+.scale-mouse-pointer {
+  transition: all 500ms;
+}
+
+.scale-mouse-pointer:hover {
+  cursor: pointer;
+  scale: 1.1;
+}
+
+.select-container p {
+  text-align: center;
+  font-weight: 500;
+  height: 2em;
+}
+
+.select-container .flex {
+  column-gap: 0.5em;
+}
+
+#activity-console .card.pending .body {
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+  position: relative;
+}
+#activity-console .card.pending .body::after,
+#activity-console .card.pending .body::before {
+  content: "";
+  box-sizing: border-box;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  left: 94%;
+  top: 10%;
+  animation: animloader 2s linear infinite;
+}
+#activity-console .card.pending .body::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
