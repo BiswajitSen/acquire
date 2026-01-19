@@ -1088,7 +1088,7 @@
 @media (max-width: 768px) {
   #root {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto auto auto;
+    grid-template-rows: 2.5rem 1fr auto auto 55px;
     grid-template-areas:
       "game-header"
       "game-board-container"
@@ -1101,12 +1101,12 @@
   }
   
   #game-header {
-    padding: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
   }
   
   #game-title {
-    font-size: 1.1rem;
-    letter-spacing: 0.15em;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
   }
   
   #corporation-section,
@@ -1129,36 +1129,39 @@
   }
   
   #game-board-container {
-    padding: var(--space-xs);
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: var(--space-sm);
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  
-  #game-board {
-    gap: 4px;
-    padding: var(--space-sm);
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    max-height: none;
-    aspect-ratio: 12/9;
-  }
-  
-  .space {
-    font-size: 0.7rem;
-    min-width: 0;
+    flex: 1;
     min-height: 0;
   }
   
+  #game-board {
+    gap: 3px;
+    padding: var(--space-sm);
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+  }
+  
+  .space {
+    font-size: 0.65rem;
+    min-width: 0;
+    min-height: 0;
+    padding: 2px;
+  }
+  
   .space span:first-child {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   
   .space span:last-child {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
+    display: none;
   }
   
   #display-panel {
@@ -1171,11 +1174,15 @@
   }
   
   #history-button {
-    display: none;
+    display: none !important;
   }
   
   #history-pane {
     display: none !important;
+  }
+  
+  #display-panel {
+    grid-template-columns: 1fr !important;
   }
   
   #activity-console {
@@ -1221,18 +1228,13 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding: var(--space-xs) var(--space-sm);
-    margin-bottom: 55px;
   }
   
   .mobile-panel-toggle {
+    grid-area: mobile-panels;
     display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     background: var(--bg-darker);
     border-top: 1px solid var(--border-color);
-    z-index: 50;
     padding: var(--space-xs);
     gap: var(--space-xs);
   }
