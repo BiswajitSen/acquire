@@ -1,4 +1,4 @@
-/* Page Layout - Home and Lobby Pages */
+
 
 #root {
   min-height: 100vh;
@@ -7,7 +7,7 @@
   flex-direction: column;
 }
 
-/* Header */
+
 #page-header {
   padding: 1.5rem 2rem;
   background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
@@ -39,7 +39,7 @@
   text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
 }
 
-/* Main Page Content */
+
 #page {
   flex: 1;
   padding: var(--space-xl);
@@ -48,7 +48,7 @@
   align-items: flex-start;
 }
 
-/* Server Stats Badge (optional) */
+
 .server-stats {
   position: fixed;
   bottom: 1rem;

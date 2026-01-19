@@ -1,4 +1,4 @@
-import { socketClient } from "./socket-client.js";
+import { socketClient, EVENTS } from "./socket-client.js";
 
 class VoiceChat {
   #localStream = null;
@@ -24,23 +24,23 @@ class VoiceChat {
     if (this.#isListening) return;
     
     this.#isListening = true;
-    socketClient.emit("voiceJoin");
+    socketClient.voice.emit(EVENTS.VOICE_JOIN);
   }
 
   #setupSocketListeners() {
-    socketClient.on("voiceOffer", async ({ from, offer }) => {
+    socketClient.voice.on(EVENTS.VOICE_OFFER, async ({ from, offer }) => {
       try {
         const pc = this.#createPeerConnection(from);
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socketClient.emit("voiceAnswer", { to: from, answer });
+        socketClient.voice.emit(EVENTS.VOICE_ANSWER, { to: from, answer });
       } catch (err) {
         console.error("Error handling voice offer:", err);
       }
     });
 
-    socketClient.on("voiceAnswer", async ({ from, answer }) => {
+    socketClient.voice.on(EVENTS.VOICE_ANSWER, async ({ from, answer }) => {
       const pc = this.#peerConnections.get(from);
       if (pc) {
         try {
@@ -51,7 +51,7 @@ class VoiceChat {
       }
     });
 
-    socketClient.on("voiceIceCandidate", async ({ from, candidate }) => {
+    socketClient.voice.on(EVENTS.VOICE_ICE_CANDIDATE, async ({ from, candidate }) => {
       const pc = this.#peerConnections.get(from);
       if (pc && candidate) {
         try {
@@ -62,17 +62,23 @@ class VoiceChat {
       }
     });
 
-    socketClient.on("voiceUserJoined", async ({ oderId }) => {
+    socketClient.voice.on(EVENTS.VOICE_USER_JOINED, async ({ oderId }) => {
       await this.#initiateConnection(oderId);
     });
 
-    socketClient.on("voiceUserLeft", ({ oderId }) => {
+    socketClient.voice.on(EVENTS.VOICE_USER_LEFT, ({ oderId }) => {
       this.#cleanupPeer(oderId);
     });
 
-    socketClient.on("voiceRoomUsers", async ({ users }) => {
+    socketClient.voice.on(EVENTS.VOICE_ROOM_USERS, async ({ users }) => {
       for (const oderId of users) {
         await this.#initiateConnection(oderId);
+      }
+    });
+
+    socketClient.voice.onReconnect(() => {
+      if (this.#isListening) {
+        socketClient.voice.emit(EVENTS.VOICE_JOIN);
       }
     });
   }
@@ -109,7 +115,7 @@ class VoiceChat {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        socketClient.emit("voiceIceCandidate", {
+        socketClient.voice.emit(EVENTS.VOICE_ICE_CANDIDATE, {
           to: peerId,
           candidate: event.candidate
         });
@@ -156,7 +162,7 @@ class VoiceChat {
       const pc = this.#createPeerConnection(peerId);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      socketClient.emit("voiceOffer", { to: peerId, offer });
+      socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
     } catch (err) {
       console.error("Error initiating connection:", err);
     }
@@ -194,7 +200,7 @@ class VoiceChat {
         this.#statusElement.textContent = "MIC ON";
       }
 
-      socketClient.emit("voiceMicOn");
+      socketClient.voice.emit(EVENTS.VOICE_MIC_ON);
     } catch (error) {
       console.error("Failed to start mic:", error);
       if (this.#statusElement) {
@@ -207,7 +213,7 @@ class VoiceChat {
     try {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      socketClient.emit("voiceOffer", { to: peerId, offer });
+      socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
     } catch (err) {
       console.error("Renegotiation failed:", err);
     }
@@ -234,7 +240,7 @@ class VoiceChat {
       this.#statusElement.textContent = "MIC OFF";
     }
 
-    socketClient.emit("voiceMicOff");
+    socketClient.voice.emit(EVENTS.VOICE_MIC_OFF);
   }
 
   leave() {
@@ -247,7 +253,7 @@ class VoiceChat {
     this.#audioElements.clear();
 
     this.#isListening = false;
-    socketClient.emit("voiceLeave");
+    socketClient.voice.emit(EVENTS.VOICE_LEAVE);
   }
 }
 

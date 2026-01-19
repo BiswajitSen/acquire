@@ -397,7 +397,6 @@ class Purchase {
 const startPurchase = ({ corporations, portfolio }, activityConsole) => {
   const availableCorporations = corporationsInMarket(corporations);
   
-  // Auto-skip if no corporations are available to buy from
   if (availableCorporations.length === 0) {
     activityConsole.innerHTML = '<p class="auto-skip-msg">No stocks available - skipping purchase...</p>';
     setTimeout(refillTile, 800);

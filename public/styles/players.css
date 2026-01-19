@@ -1,4 +1,4 @@
-/* Players Bar */
+
 
 #players {
   grid-area: players;
@@ -55,7 +55,7 @@
   transition: all 0.3s ease;
 }
 
-/* Active Player - Much more prominent */
+
 .player:not([hidden]).active {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
   border: 2px solid #22c55e;
@@ -107,7 +107,7 @@
   transform: scale(1.1);
 }
 
-/* Turn indicator badge */
+
 .player:not([hidden]).active::after {
   content: "TURN";
   position: absolute;
@@ -123,7 +123,7 @@
   box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
 }
 
-/* Self Indicator */
+
 .player:not([hidden]).self .name::after {
   content: "You";
   font-size: 0.6rem;
@@ -138,13 +138,13 @@
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
-/* Self + Active combo */
+
 .player:not([hidden]).active.self .name::after {
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
 }
 
-/* Inactive players are slightly dimmed */
+
 .player:not([hidden]):not(.active) {
   opacity: 0.7;
 }

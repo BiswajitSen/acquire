@@ -1,4 +1,4 @@
-import { socketClient } from "/scripts/socket-client.js";
+import { socketClient, EVENTS } from "/scripts/socket-client.js";
 
 const getPlayerSection = () => document.querySelector("#players");
 const getMessageElement = () => document.querySelector("#message");
@@ -91,11 +91,14 @@ const setUpStartButton = () => {
 const setupSocketListeners = () => {
   const lobbyId = getLobbyIdFromUrl();
   
-  // Join the lobby room
-  socketClient.emit("joinLobbyRoom", lobbyId);
+  socketClient.lobby.emit(EVENTS.JOIN_LOBBY, { lobbyId });
   
-  // Listen for lobby updates - fetch fresh data to get user-specific info
-  socketClient.on("lobbyUpdate", () => {
+  socketClient.lobby.on(EVENTS.LOBBY_UPDATE, () => {
+    updateLobby();
+  });
+
+  socketClient.lobby.onReconnect(() => {
+    socketClient.lobby.emit(EVENTS.JOIN_LOBBY, { lobbyId });
     updateLobby();
   });
 };

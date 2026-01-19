@@ -1,4 +1,4 @@
-import { socketClient } from "/scripts/socket-client.js";
+import { socketClient, EVENTS } from "/scripts/socket-client.js";
 
 const getHostForm = () => document.querySelector("#host-form");
 const getJoinForm = () => document.querySelector("#join-form");
@@ -149,8 +149,12 @@ const setupJoinForm = () => {
 };
 
 const setupSocketListeners = () => {
-  socketClient.on("lobbyListUpdate", ({ lobbies }) => {
+  socketClient.lobby.on(EVENTS.LOBBY_LIST_UPDATE, ({ lobbies }) => {
     renderLobbies(lobbies);
+  });
+
+  socketClient.lobby.onReconnect(() => {
+    loadLobbies();
   });
 };
 

@@ -1,4 +1,4 @@
-/* Lobby Waiting Room */
+
 
 #page {
   display: flex;
@@ -19,7 +19,7 @@
   box-shadow: var(--shadow-xl);
 }
 
-/* Waiting Message */
+
 #room-info > section:first-child {
   text-align: center;
   margin-bottom: var(--space-xl);
@@ -42,7 +42,7 @@
   margin-left: 0.25rem;
 }
 
-/* Players Grid */
+
 #players {
   list-style: none;
   display: grid;
@@ -75,7 +75,7 @@
   animation: fadeIn 0.3s ease;
 }
 
-/* Profile Picture */
+
 #players .profile-picture {
   width: 56px;
   height: 56px;
@@ -109,7 +109,7 @@
   content: "";
 }
 
-/* Player Name */
+
 #players .name-container {
   text-align: center;
 }
@@ -129,7 +129,7 @@
   height: 1.5rem;
 }
 
-/* Start Button */
+
 #room-info > div:last-child {
   display: flex;
   justify-content: center;
@@ -163,7 +163,7 @@
   display: none;
 }
 
-/* Lobby ID Display */
+
 .lobby-id {
   text-align: center;
   margin-top: var(--space-lg);
@@ -181,7 +181,7 @@
   color: var(--text-secondary);
 }
 
-/* Responsive */
+
 @media (max-width: 640px) {
   #room-info {
     min-width: auto;

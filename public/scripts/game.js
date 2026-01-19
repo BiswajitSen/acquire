@@ -8,7 +8,7 @@ import { resolveMergeConflict } from "/scripts/merge-conflict.js";
 import DisplayPanel from "/scripts/components/display-panel.js";
 import { selectAcquirer } from "/scripts/multiple-acquirer.js";
 import { selectDefunct } from "/scripts/multiple-defunct.js";
-import { socketClient } from "/scripts/socket-client.js";
+import { socketClient, EVENTS } from "/scripts/socket-client.js";
 import { voiceChat } from "/scripts/voice-chat.js";
 
 let previousState;
@@ -338,7 +338,6 @@ const renderGame = (forceUpdate = false) => {
   fetch(`${getGameBaseUrl()}/status`)
     .then(res => res.json())
     .then(gameStatus => {
-      // Skip render only if state unchanged and not forced (for backward compatibility)
       if (!forceUpdate && previousState === gameStatus.state && gameStatus.state !== "merge")
         return;
 
@@ -622,18 +621,21 @@ const setupGame = () => {
 const setupSocketListeners = (gameService) => {
   const lobbyId = getLobbyIdFromUrl();
   
-  // Join the game room
-  socketClient.emit("joinGameRoom", lobbyId);
+  socketClient.game.emit(EVENTS.JOIN_GAME, { lobbyId });
   
-  // Listen for game updates - force update since we know something changed
-  socketClient.on("gameUpdate", () => {
+  socketClient.game.on(EVENTS.GAME_UPDATE, () => {
     renderGame(true);
     gameService.render();
   });
   
-  // Listen for game end
-  socketClient.on("gameEnd", () => {
+  socketClient.game.on(EVENTS.GAME_END, () => {
     notifyGameEnd();
+  });
+
+  socketClient.game.onReconnect(() => {
+    socketClient.game.emit(EVENTS.JOIN_GAME, { lobbyId });
+    renderGame(true);
+    gameService.render();
   });
 };
 

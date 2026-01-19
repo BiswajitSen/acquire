@@ -1,4 +1,4 @@
-/* Home Page - Lobby Browser */
+
 
 #page {
   padding: var(--space-2xl);
@@ -13,7 +13,7 @@
   animation: fadeIn 0.5s ease;
 }
 
-/* Section Cards */
+
 #host-section,
 #join-section {
   background: var(--bg-card);
@@ -42,7 +42,7 @@
   letter-spacing: 0.1em;
 }
 
-/* Forms */
+
 #host-form,
 #join-form {
   display: flex;
@@ -73,7 +73,7 @@
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
-/* Lobby List */
+
 #lobby-list {
   max-height: 320px;
   overflow-y: auto;
@@ -154,7 +154,7 @@
   border-radius: var(--radius-sm);
 }
 
-/* Join Form Hidden State */
+
 #join-form.hide {
   display: none;
 }
@@ -163,7 +163,7 @@
   display: none;
 }
 
-/* Empty State */
+
 .empty-state {
   text-align: center;
   padding: var(--space-2xl);
@@ -176,7 +176,7 @@
   opacity: 0.5;
 }
 
-/* Message */
+
 #message {
   grid-column: 1 / -1;
   text-align: center;
@@ -191,7 +191,7 @@
   border: 1px solid var(--danger);
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   #lobby-options {
     grid-template-columns: 1fr;
@@ -202,7 +202,7 @@
   }
 }
 
-/* Subtitle/Tagline */
+
 .tagline {
   text-align: center;
   color: var(--text-muted);

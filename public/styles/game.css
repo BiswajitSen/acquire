@@ -1,5 +1,3 @@
-/* Game Page Layout */
-
 #root {
   width: 100vw;
   height: 100vh;
@@ -13,14 +11,11 @@
     "corporation activity-bar account";
   background: var(--bg-darker);
 }
-
 .flex {
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
-/* Game Header */
 #game-header {
   grid-area: game-header;
   display: flex;
@@ -31,8 +26,6 @@
   position: relative;
   overflow: hidden;
 }
-
-/* Animated gradient border */
 #game-header::after {
   content: "";
   position: absolute;
@@ -54,13 +47,10 @@
   background-size: 200% 100%;
   animation: gradientFlow 8s linear infinite;
 }
-
 @keyframes gradientFlow {
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
 }
-
-/* Ambient light effect */
 #game-header::before {
   content: "";
   position: absolute;
@@ -72,7 +62,6 @@
   background: radial-gradient(ellipse at center top, rgba(100, 150, 255, 0.08) 0%, transparent 70%);
   pointer-events: none;
 }
-
 #game-title {
   font-family: "Orbitron", sans-serif;
   font-size: 1.6rem;
@@ -94,13 +83,10 @@
   text-shadow: 0 0 40px rgba(165, 180, 252, 0.3);
   position: relative;
 }
-
 @keyframes shimmerTitle {
   0% { background-position: 0% center; }
   100% { background-position: 200% center; }
 }
-
-/* Side Panels */
 #corporation-section,
 #portfolio-section {
   background: linear-gradient(180deg, rgba(25, 35, 50, 0.95) 0%, rgba(12, 18, 28, 0.98) 100%);
@@ -109,12 +95,10 @@
   flex-direction: column;
   position: relative;
 }
-
 #portfolio-section {
   border-right: none;
   border-left: 1px solid rgba(80, 100, 130, 0.25);
 }
-
 #corporation-section {
   grid-area: corporation;
   position: relative;
@@ -123,14 +107,11 @@
   display: flex;
   flex-direction: column;
 }
-
-/* Highlight effect when selecting corporation to establish */
 #corporation-section.highlight-selection .corporation:not(.non-selectable) {
   animation: glacierBlink 1s ease-in-out infinite;
   overflow: hidden;
   border-radius: var(--radius-md);
 }
-
 @keyframes glacierBlink {
   0%, 100% {
     border-color: rgba(56, 189, 248, 0.3);
@@ -145,12 +126,9 @@
       inset 0 0 8px rgba(56, 189, 248, 0.15);
   }
 }
-
 #portfolio-section {
   grid-area: account;
 }
-
-/* Voice Controls Section */
 #voice-controls {
   margin-top: auto;
   background: linear-gradient(180deg, rgba(15, 23, 35, 0.98) 0%, rgba(10, 15, 25, 1) 100%);
@@ -161,7 +139,6 @@
   gap: var(--space-md);
   padding: var(--space-md);
 }
-
 #voice-toggle {
   display: flex;
   align-items: center;
@@ -178,48 +155,38 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 #voice-toggle:hover {
   background: linear-gradient(135deg, rgba(40, 55, 75, 0.9) 0%, rgba(30, 40, 55, 0.95) 100%);
   border-color: rgba(100, 120, 150, 0.4);
   color: var(--text-primary);
 }
-
 #voice-toggle.active {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);
   border-color: rgba(34, 197, 94, 0.5);
   color: #4ade80;
 }
-
 #voice-toggle.active:hover {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(16, 185, 129, 0.25) 100%);
 }
-
 .voice-icon {
   width: 1.2rem;
   height: 1.2rem;
   fill: currentColor;
 }
-
 #voice-toggle.active .voice-icon {
   animation: voicePulse 1.5s ease-in-out infinite;
 }
-
 @keyframes voicePulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
 .voice-status {
   font-size: 0.65rem;
   color: var(--text-muted);
 }
-
 #voice-toggle.active .voice-status {
   color: #4ade80;
 }
-
-/* Subtle gradient overlay for depth */
 #corporation-section::before,
 #portfolio-section::before {
   content: "";
@@ -228,7 +195,6 @@
   background: radial-gradient(ellipse at center top, rgba(100, 150, 200, 0.02) 0%, transparent 60%);
   pointer-events: none;
 }
-
 #corporation-section > header,
 .portfolio-header {
   font-family: "Orbitron", sans-serif;
@@ -246,18 +212,18 @@
   align-items: center;
 }
 }
-
-/* Corporations List */
 #corporations,
 #portfolio {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: var(--space-md);
+  gap: 12px;
+  padding: 16px 12px;
   overflow-y: auto;
 }
-
+#corporations .corporation:first-child {
+  margin-top: 4px;
+}
 .corporation {
   position: relative;
   background: linear-gradient(145deg, #1e2a3a 0%, #151d28 100%);
@@ -266,12 +232,10 @@
   overflow: visible;
   transition: all var(--transition-fast);
 }
-
 .corporation:hover {
   border-color: #4a5a6d;
   transform: translateX(2px);
 }
-
 .corporation .name {
   display: flex;
   justify-content: space-between;
@@ -284,7 +248,6 @@
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
-
 .corporation .info {
   display: flex;
   align-items: center;
@@ -292,7 +255,6 @@
   gap: 0.5rem;
   background: rgba(0, 0, 0, 0.2);
 }
-
 .corporation .icon {
   width: 2.8rem;
   height: 2.8rem;
@@ -301,27 +263,23 @@
   background: rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
 }
-
 .corporation .icon > img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-
 .corporation .details {
   display: flex;
   justify-content: space-around;
   align-items: center;
   flex: 1;
 }
-
 .corporation .details .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 2.8rem;
 }
-
 .corporation .details .stat-label {
   font-size: 0.55rem;
   font-weight: 500;
@@ -330,7 +288,6 @@
   letter-spacing: 0.03em;
   margin-bottom: 1px;
 }
-
 .corporation .details .stocks,
 .corporation .details .size,
 .corporation .details .price {
@@ -338,12 +295,9 @@
   font-weight: 700;
   color: #f1f5f9;
 }
-
 .corporation .details .price {
   color: #4ade80;
 }
-
-/* Corporation Colors on Name Bar */
 #phoenix .name { background: var(--phoenix-color); }
 #quantum .name { background: var(--quantum-color); }
 #hydra .name { background: var(--hydra-color); }
@@ -351,30 +305,23 @@
 #america .name { background: var(--america-color); }
 #sackson .name { background: var(--sackson-color); }
 #zeta .name { background: var(--zeta-color); }
-
 .corporation.safe .name::after {
   content: url("/images/safe.png");
   transform: scale(0.8);
 }
-
-/* Selectable Corporations */
 #corporations:not(.selectable) {
   pointer-events: none;
 }
-
 #corporations.selectable .corporation:not(.non-selectable) {
   cursor: pointer;
   border-color: var(--primary);
   box-shadow: var(--shadow-glow);
   transform: scale(1.02);
 }
-
 #corporations.selectable .corporation.non-selectable {
   opacity: 0.3;
   pointer-events: none;
 }
-
-/* Game Board Container */
 #game-board-container {
   grid-area: game-board-container;
   display: flex;
@@ -388,8 +335,6 @@
   position: relative;
   overflow: hidden;
 }
-
-/* Ambient grid pattern */
 #game-board-container::before {
   content: "";
   position: absolute;
@@ -400,8 +345,6 @@
   background-size: 40px 40px;
   pointer-events: none;
 }
-
-/* Game Board */
 #game-board {
   display: grid;
   grid-template-rows: repeat(9, 1fr);
@@ -418,8 +361,6 @@
   height: 100%;
   max-height: 100%;
 }
-
-/* Board Spaces */
 .space {
   display: flex;
   align-items: center;
@@ -435,8 +376,6 @@
   position: relative;
   overflow: hidden;
 }
-
-/* Subtle shine effect on tiles */
 .space::before {
   content: "";
   position: absolute;
@@ -448,21 +387,16 @@
   border-radius: 5px 5px 0 0;
   pointer-events: none;
 }
-
 .space span:first-child {
   font-weight: 700;
   font-size: 0.8rem;
 }
-
 .space span:last-child {
   font-size: 0.6rem;
   opacity: 0.7;
   margin-left: 1px;
   font-weight: 500;
 }
-
-
-/* Placed Tiles (unaffiliated) */
 .space.incorporated {
   background: linear-gradient(145deg, #4a5d75 0%, #3a4a5f 100%);
   border: 2px solid rgba(150, 180, 210, 0.6);
@@ -472,7 +406,6 @@
     0 0 12px rgba(100, 140, 180, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
-
 .space.incorporated::after {
   content: "";
   position: absolute;
@@ -481,8 +414,6 @@
   background: radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
   pointer-events: none;
 }
-
-/* Corporation Tiles - Enhanced with glows */
 .space.phoenix { 
   background: linear-gradient(145deg, #a78bdf 0%, var(--phoenix-color) 100%); 
   color: white; 
@@ -492,7 +423,6 @@
     0 0 40px rgba(139, 92, 246, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.quantum { 
   background: linear-gradient(145deg, #34d9f0 0%, var(--quantum-color) 100%); 
   color: white; 
@@ -502,7 +432,6 @@
     0 0 40px rgba(6, 182, 212, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.hydra { 
   background: linear-gradient(145deg, #fba54c 0%, var(--hydra-color) 100%); 
   color: white; 
@@ -512,7 +441,6 @@
     0 0 40px rgba(249, 115, 22, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.fusion { 
   background: linear-gradient(145deg, #5ce890 0%, var(--fusion-color) 100%); 
   color: white; 
@@ -522,7 +450,6 @@
     0 0 40px rgba(34, 197, 94, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.america { 
   background: linear-gradient(145deg, #7ab5fb 0%, var(--america-color) 100%); 
   color: white; 
@@ -532,7 +459,6 @@
     0 0 40px rgba(59, 130, 246, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.sackson { 
   background: linear-gradient(145deg, #fa8a8a 0%, var(--sackson-color) 100%); 
   color: white; 
@@ -542,7 +468,6 @@
     0 0 40px rgba(239, 68, 68, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
-
 .space.zeta { 
   background: linear-gradient(145deg, #fcd63d 0%, var(--zeta-color) 100%); 
   color: #1a1a2e; 
@@ -551,8 +476,6 @@
     0 0 40px rgba(234, 179, 8, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
-
-/* Corporation tiles shine effect */
 .space.phoenix::after,
 .space.quantum::after,
 .space.hydra::after,
@@ -567,12 +490,9 @@
   background: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
   pointer-events: none;
 }
-
-/* New Tile Animation */
 .space.new-tile {
   animation: tilePlaced 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
 @keyframes tilePlaced {
   0% { 
     transform: scale(0.5) rotateX(20deg); 
@@ -589,13 +509,10 @@
   }
   100% { transform: scale(1); box-shadow: none; }
 }
-
-/* Portfolio Section */
 #portfolio {
   gap: var(--space-sm);
   padding: var(--space-sm);
 }
-
 .balance {
   background: linear-gradient(135deg, #1a2332 0%, #0f1620 100%);
   border: 1px solid var(--border-color);
@@ -603,7 +520,6 @@
   padding: var(--space-md) var(--space-sm);
   text-align: center;
 }
-
 .balance > header,
 .stocks > header,
 .tiles > header {
@@ -614,7 +530,6 @@
   text-transform: uppercase;
   margin-bottom: var(--space-xs);
 }
-
 #balance-container .amount {
   font-family: "Orbitron", sans-serif;
   font-size: 1.75rem;
@@ -622,12 +537,9 @@
   color: #4ade80;
   text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
 }
-
 #balance-container .amount::before {
   content: "$";
 }
-
-/* Stocks Display */
 #portfolio .stocks {
   background: var(--bg-dark);
   border: 1px solid var(--border-color);
@@ -639,7 +551,6 @@
   align-items: center;
   gap: var(--space-sm);
 }
-
 #portfolio .stocks > header {
   writing-mode: vertical-rl;
   text-orientation: upright;
@@ -648,7 +559,6 @@
   margin: 0;
   font-size: 0.65rem;
 }
-
 #stocks-container {
   display: flex;
   flex-wrap: wrap;
@@ -657,7 +567,6 @@
   gap: 0.5rem;
   flex: 1;
 }
-
 .stock {
   height: 70px;
   width: 110px;
@@ -669,12 +578,10 @@
   position: relative;
   transition: all var(--transition-fast);
 }
-
 .stock:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
-
 .stock > .quantity {
   position: absolute;
   top: -6px;
@@ -691,7 +598,6 @@
   font-weight: 700;
   color: var(--text-primary);
 }
-
 .stock.phoenix { background-image: url(/images/cards/phoenix.svg); background-color: var(--phoenix-color); }
 .stock.quantum { background-image: url(/images/cards/quantum.svg); background-color: var(--quantum-color); }
 .stock.america { background-image: url(/images/cards/america.svg); background-color: var(--america-color); }
@@ -699,15 +605,12 @@
 .stock.hydra { background-image: url(/images/cards/hydra.svg); background-color: var(--hydra-color); }
 .stock.fusion { background-image: url(/images/cards/fusion.svg); background-color: var(--fusion-color); }
 .stock.sackson { background-image: url(/images/cards/sackson.svg); background-color: var(--sackson-color); }
-
-/* Tiles Section */
 .tiles {
   background: linear-gradient(135deg, #1a2332 0%, #0f1620 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
 }
-
 #tile-container {
   display: flex;
   flex-wrap: wrap;
@@ -715,7 +618,6 @@
   align-items: center;
   gap: 0.5rem;
 }
-
 .tile {
   width: 52px;
   height: 52px;
@@ -732,14 +634,12 @@
   transition: all var(--transition-fast);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-
 .tile:hover:not(.used-tile):not(.unplayable-tile) {
   border-color: #60a5fa;
   box-shadow: 0 0 12px rgba(96, 165, 250, 0.5);
   transform: scale(1.08);
   background: linear-gradient(145deg, #3a4a5d 0%, #2a3a4d 100%);
 }
-
 .used-tile {
   background: #1e293b;
   border-color: transparent;
@@ -747,7 +647,6 @@
   cursor: default;
   box-shadow: none;
 }
-
 .unplayable-tile {
   background: repeating-linear-gradient(
     135deg,
@@ -761,23 +660,18 @@
   cursor: not-allowed;
   pointer-events: none;
 }
-
 .highlight-player-tile .tile:not(.unplayable-tile, .used-tile) {
   border-color: #22c55e;
   box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
   animation: tileGlow 1.5s ease-in-out infinite;
 }
-
 @keyframes tileGlow {
   0%, 100% { box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
   50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.7); }
 }
-
 .highlight-player-tile {
   box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.1);
 }
-
-/* Display Panel (Activity Bar) */
 #display-panel {
   grid-area: activity-bar;
   background: linear-gradient(180deg, rgba(25, 35, 50, 0.98) 0%, rgba(15, 23, 35, 1) 100%);
@@ -787,7 +681,6 @@
   overflow: hidden;
   position: relative;
 }
-
 #display-panel::before {
   content: "";
   position: absolute;
@@ -802,14 +695,11 @@
     transparent
   );
 }
-
 #display-panel button {
   padding: var(--space-sm) var(--space-md);
   font-size: 0.8rem;
   margin: 0 var(--space-xs);
 }
-
-/* Info Card Modal */
 #info-card,
 .result-page {
   position: fixed;
@@ -824,11 +714,9 @@
   justify-content: center;
   z-index: 1000;
 }
-
 #info-card.hide {
   display: none;
 }
-
 #info-close-btn,
 .bonus-close-btn {
   position: absolute;
@@ -839,13 +727,11 @@
   cursor: pointer;
   transition: all var(--transition-fast);
 }
-
 #info-close-btn:hover,
 .bonus-close-btn:hover {
   color: var(--danger);
   transform: scale(1.1);
 }
-
 #info-icon {
   position: absolute;
   right: var(--space-md);
@@ -855,12 +741,9 @@
   opacity: 0.7;
   transition: opacity var(--transition-fast);
 }
-
 #info-icon:hover {
   opacity: 1;
 }
-
-/* Stock Purchase UI */
 .selected-stocks {
   display: flex;
   justify-content: center;
@@ -870,7 +753,6 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-lg);
 }
-
 .selected-stocks .stock {
   height: 70px;
   width: 100px;
@@ -879,12 +761,10 @@
   border: 2px solid rgba(255, 255, 255, 0.1);
   transition: all var(--transition-fast);
 }
-
 .selected-stocks .stock:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
-
 .selected-stocks .stock > div {
   position: absolute;
   top: -6px;
@@ -904,12 +784,10 @@
   transition: all var(--transition-fast);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
-
 .selected-stocks .stock > div:hover {
   transform: scale(1.15);
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
 }
-
 .selected-stocks .stock > p {
   position: absolute;
   bottom: 0;
@@ -926,7 +804,6 @@
   letter-spacing: 0.03em;
   display: none;
 }
-
 .buying-prompt,
 .refill-tile-prompt {
   display: flex;
@@ -935,8 +812,6 @@
   gap: 1.5rem;
   padding: var(--space-md) var(--space-lg);
 }
-
-/* Total Price Display */
 .price-display {
   display: flex;
   align-items: center;
@@ -946,13 +821,11 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
 }
-
 .total-label {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
-
 .total-price {
   font-family: "Orbitron", sans-serif;
   font-size: 1.4rem;
@@ -960,20 +833,16 @@
   color: #4ade80;
   text-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
 }
-
 .total-label.low-balance,
 .total-price.low-balance {
   color: #ef4444;
   text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
-
 .message-pair-holder {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-
-/* Purchase Buttons */
 #display-panel button,
 .buying-prompt button {
   padding: 0.6rem 1.5rem;
@@ -982,40 +851,33 @@
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
 }
-
 .buying-prompt button:first-of-type,
 #display-panel button.confirm-btn {
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
 }
-
 .buying-prompt button:first-of-type:hover,
 #display-panel button.confirm-btn:hover {
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
-
 .buying-prompt button:last-of-type,
 #display-panel button.skip-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
-
 .buying-prompt button:last-of-type:hover,
 #display-panel button.skip-btn:hover {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
-
 .disable-btn {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
   transform: none !important;
   box-shadow: none !important;
 }
-
 .low-balance {
   color: var(--danger);
 }
-
 .auto-skip-msg {
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -1023,8 +885,6 @@
   padding: 1rem;
   text-align: center;
 }
-
-/* Game Over / Results */
 .result-wrapper {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -1033,7 +893,6 @@
   max-width: 800px;
   position: relative;
 }
-
 .result-wrapper h1 {
   font-family: "Orbitron", sans-serif;
   text-align: center;
@@ -1041,18 +900,15 @@
   padding-bottom: var(--space-md);
   border-bottom: 2px solid var(--border-color);
 }
-
 .game-over {
   flex-direction: column;
   gap: var(--space-md);
 }
-
 .ranks {
   background: var(--bg-dark);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-
 .rank-card-header {
   background: var(--primary);
   color: white;
@@ -1060,11 +916,9 @@
   font-weight: 600;
   letter-spacing: 0.1em;
 }
-
 .rank-card-body {
   padding: var(--space-md);
 }
-
 .ranks .headers,
 .line {
   display: grid;
@@ -1073,13 +927,11 @@
   padding: var(--space-sm);
   text-align: center;
 }
-
 .ranks .headers {
   font-weight: 600;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
 }
-
 .bonus-section {
   display: flex;
   flex-wrap: wrap;
@@ -1088,41 +940,34 @@
   padding-top: var(--space-lg);
   border-top: 1px solid var(--border-color);
 }
-
 .bonus-card {
   background: var(--bg-dark);
   border-radius: var(--radius-md);
   overflow: hidden;
   min-width: 200px;
 }
-
 .bonus-card-header {
   padding: var(--space-sm) var(--space-md);
   font-weight: 600;
   letter-spacing: 0.1em;
 }
-
 .bonus-card-body {
   padding: var(--space-md);
 }
-
 .bonus-table {
   display: flex;
   gap: var(--space-lg);
   padding: var(--space-sm);
 }
-
 .bonus-table > div {
   flex: 1;
   text-align: center;
 }
-
 .bonus-table h5 {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-bottom: var(--space-xs);
 }
-
 .bonus-table p {
   font-size: 0.75rem;
   padding: var(--space-xs) var(--space-sm);
@@ -1130,40 +975,32 @@
   border-radius: var(--radius-sm);
   margin-top: var(--space-xs);
 }
-
-/* Merger UI */
 .deal-defunct-stocks {
   flex-direction: column;
   gap: var(--space-md);
 }
-
 .deal-options {
   display: flex;
   gap: var(--space-lg);
 }
-
 .sell-box {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
 }
-
 .stock-btn {
   width: 2rem !important;
   height: 2rem !important;
   padding: 0 !important;
   font-size: 1.2rem !important;
 }
-
 .player-deal {
   transform: scale(0.9);
 }
-
 .player-deal .body {
   display: flex !important;
   gap: var(--space-sm);
 }
-
 .sell-defunct-box,
 .trade-defunct-box {
   display: flex;
@@ -1171,7 +1008,6 @@
   align-items: center;
   gap: var(--space-xs);
 }
-
 .sell-icon,
 .trade-icon {
   width: 1.25rem;
@@ -1179,47 +1015,35 @@
   background-size: contain;
   background-repeat: no-repeat;
 }
-
 .sell-icon { background-image: url(/images/sell-icon.png); }
 .trade-icon { background-image: url(/images/trade-icon.jpg); }
-
-/* Flash Animation */
 .flash {
   animation: flash 0.5s ease;
 }
-
 @keyframes flash {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.5); }
 }
-
 .stock.flash {
   transform: scale(1.1);
 }
-
 #balance-container.flash .amount {
   transform: scale(1.2);
 }
-
-/* Conflict Resolution */
 .select-container {
   text-align: center;
 }
-
 .select-container p {
   font-weight: 500;
   margin-bottom: var(--space-md);
 }
-
 .scale-mouse-pointer {
   transition: all var(--transition-fast);
 }
-
 .scale-mouse-pointer:hover {
   transform: scale(1.1);
   cursor: pointer;
 }
-
 .conflict {
   width: 4rem;
   height: 4rem;

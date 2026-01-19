@@ -3,6 +3,8 @@ const { authorizeLobbyMember } = require("../middleware/lobby");
 const { Game, loadGame } = require("../models/game");
 const { createCorporations } = require("../models/corporation");
 const { createPlayers } = require("../models/player");
+const { asyncHandler, ERROR_TYPES } = require("../utils/error-handler");
+const { validators } = require("../utils/validation");
 
 const serveGameStats = (req, res) => {
   const { game } = req;
@@ -14,18 +16,19 @@ const serveGamePage = (_, res) => {
   res.sendFile("game.html", { root: "pages" });
 };
 
-const placeTile = (req, res) => {
+const placeTile = asyncHandler((req, res) => {
   const { game, lobbyId } = req;
   const { username } = req.cookies;
-  const tile = req.body;
-
-  game.placeTile(username, tile);
+  
+  const position = validators.position(req.body);
+  
+  game.placeTile(username, position);
   
   const socketBroadcaster = req.app.get("socketBroadcaster");
   if (socketBroadcaster) socketBroadcaster.broadcastGameUpdate(lobbyId);
   
   res.status(200).end();
-};
+});
 
 const endPlayerTurn = (req, res) => {
   const { game, lobbyId } = req;
@@ -57,9 +60,12 @@ const buyStocks = (req, res) => {
   res.end();
 };
 
-const establishCorporation = (req, res) => {
+const VALID_CORPORATIONS = ["phoenix", "quantum", "hydra", "fusion", "america", "sackson", "zeta"];
+
+const establishCorporation = asyncHandler((req, res) => {
   const { game, lobbyId } = req;
-  const { name } = req.body;
+  
+  const name = validators.corporation(req.body?.name, VALID_CORPORATIONS);
 
   game.establishCorporation({ name });
   
@@ -67,7 +73,7 @@ const establishCorporation = (req, res) => {
   if (socketBroadcaster) socketBroadcaster.broadcastGameUpdate(lobbyId);
   
   res.end();
-};
+});
 
 const verifyStart = (req, res, next) => {
   const { lobby, lobbyId } = req;

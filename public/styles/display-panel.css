@@ -1,4 +1,4 @@
-/* Activity Console / Display Panel */
+
 
 #activity-console {
   display: flex;
@@ -11,7 +11,7 @@
   flex: 1;
 }
 
-/* Activity Cards */
+
 .card {
   min-width: 8.5rem;
   background: var(--bg-dark);
@@ -69,12 +69,12 @@
   font-size: 0.8rem;
 }
 
-/* Ensure stocks fit in card body */
+
 .card .body .stocks-purchased {
   max-width: 100%;
 }
 
-/* Corporation Icons */
+
 .corp-icon {
   width: 2.5rem;
   height: 2.5rem;
@@ -96,7 +96,7 @@
   height: 3.5rem;
 }
 
-/* Merger Display */
+
 .merger {
   display: flex;
   align-items: center;
@@ -108,7 +108,7 @@
   color: var(--text-muted);
 }
 
-/* History Panel */
+
 #history-pane {
   width: 0;
   height: 100%;
@@ -152,7 +152,7 @@
   transform: scale(1.02);
 }
 
-/* History Button - Vertical sidebar style */
+
 #history-button {
   width: 2.5rem;
   height: 100%;
@@ -191,7 +191,7 @@
   transform: translateY(-3px);
 }
 
-/* Stocks Purchased Display */
+
 .stocks-purchased {
   display: flex;
   flex-wrap: wrap;
@@ -207,7 +207,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Pending Card Animation */
+
 .card.pending .body {
   position: relative;
 }
@@ -227,7 +227,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* Select Container for Conflict Resolution */
+
 .select-container {
   display: flex;
   flex-direction: column;
