@@ -65,7 +65,6 @@ export default class DisplayPanel {
     this.#renderCurrentActivities();
   }
 
-  // eslint-disable-next-line complexity
   update(gameStatus) {
     const { currentTurn, previousTurn } = gameStatus.turns;
     const updatedCurrentPlayer = currentTurn.player.username;
@@ -76,8 +75,6 @@ export default class DisplayPanel {
     const hasActivitiesUpdated = lastActivity !== updatedLastActivity;
     const hasTurnChanged = currentPlayer !== updatedCurrentPlayer;
     const isNextPlayerInMerger = lastActivity !== "merge" || !hasTurnChanged;
-
-    // if activity not updated then return except activity is merge
 
     if (isNextPlayerInMerger && !hasActivitiesUpdated) return;
 

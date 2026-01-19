@@ -1,10 +1,14 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>Acquire - Lobby</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acquire - Game Lobby</title>
     <link rel="stylesheet" href="/styles/style.css" />
     <link rel="stylesheet" href="/styles/page-layout.css" />
     <link rel="stylesheet" href="/styles/lobby.css" />
-    <script src="/scripts/lobby.js"></script>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+    <script src="/scripts/lobby.js" type="module"></script>
   </head>
   <body>
     <div id="root">
@@ -15,8 +19,9 @@
         <section id="room-info">
           <section>
             <h2 id="message">Waiting for players</h2>
-            <h2 id="animation">.</h2>
+            <span id="animation">.</span>
           </section>
+          
           <ul id="players">
             <li class="player">
               <div class="profile-picture"></div>
@@ -55,8 +60,11 @@
               </div>
             </li>
           </ul>
+          
           <div>
-            <input type="button" value="Start" id="start-btn" class="hide" />
+            <button type="button" id="start-btn" class="hide">
+              Start Game
+            </button>
           </div>
         </section>
       </main>

@@ -78,7 +78,7 @@ const generateRankTable = playerRanks => {
 };
 
 const rankPlayers = players => {
-  return players.toSorted((a, b) => b.balance - a.balance);
+  return [...players].sort((a, b) => b.balance - a.balance);
 };
 
 const createBonusCard = ({ corporation, majority, minority }) => {
@@ -136,19 +136,18 @@ const renderGameResult = ({ players, bonuses }) => {
 };
 
 const getGameResult = () => {
-  fetch("/game/end-result")
+  fetch(`${getGameBaseUrl()}/end-result`)
     .then(res => res.json())
     .then(renderGameResult);
 };
 
 const refillTile = () => {
   const transitionDelay = 1000;
-  fetch("/game/end-turn", { method: "POST" }).then(() => {
+  fetch(`${getGameBaseUrl()}/end-turn`, { method: "POST" }).then(() => {
     const tileElements = getTileElements();
     placeNewTile(tileElements);
     setTimeout(() => removeHighlight(tileElements), transitionDelay);
   });
-  // .then(highlightTile());
 };
 
 const removeHighlight = tileElements => {
@@ -177,7 +176,7 @@ const generateRefillTileBtn = () => {
   const endButton = generateComponent([
     "button",
     "Refill",
-    { type: "button", onclick: "refillTile()" }, // add as listener
+    { type: "button", onclick: "refillTile()" },
   ]);
 
   return [refillTileMessageElement, endButton];
@@ -205,7 +204,7 @@ class Purchase {
   }
 
   #confirmPurchase() {
-    return fetch("/game/buy-stocks", {
+    return fetch(`${getGameBaseUrl()}/buy-stocks`, {
       method: "POST",
       body: JSON.stringify(this.#cart),
       headers: {
@@ -328,17 +327,16 @@ class Purchase {
   }
 
   #priceElement(cannotPurchase, totalPrice) {
-    const priceMsg = `Total price : $${totalPrice || 0}`;
-    const balanceElement = generateComponent([
-      "p",
-      cannotPurchase ? `Not Enough Balance : $${totalPrice}` : priceMsg,
-    ]);
-
+    const priceContainer = document.createElement("div");
+    priceContainer.className = "price-display";
+    
     if (cannotPurchase) {
-      balanceElement.classList.add("low-balance");
+      priceContainer.innerHTML = `<span class="total-label low-balance">Not Enough Balance:</span> <span class="total-price low-balance">$${totalPrice}</span>`;
+    } else {
+      priceContainer.innerHTML = `<span class="total-label">Total:</span> <span class="total-price">$${totalPrice || 0}</span>`;
     }
 
-    return balanceElement;
+    return priceContainer;
   }
 
   #generateConfirmCancel(totalPrice) {
@@ -397,8 +395,17 @@ class Purchase {
 }
 
 const startPurchase = ({ corporations, portfolio }, activityConsole) => {
+  const availableCorporations = corporationsInMarket(corporations);
+  
+  // Auto-skip if no corporations are available to buy from
+  if (availableCorporations.length === 0) {
+    activityConsole.innerHTML = '<p class="auto-skip-msg">No stocks available - skipping purchase...</p>';
+    setTimeout(refillTile, 800);
+    return;
+  }
+  
   const purchase = new Purchase(
-    corporationsInMarket(corporations),
+    availableCorporations,
     portfolio,
     activityConsole
   );

@@ -26,7 +26,6 @@ class Corporation {
 
   #price() {
     return this.#size === 0 ? 0 : this.#basePrice + 100 * this.#range();
-    // TODO: Refactor it
   }
 
   decrementStocks(quantity) {

@@ -1,199 +1,254 @@
+/* Activity Console / Display Panel */
+
 #activity-console {
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1em;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex: 1;
 }
 
+/* Activity Cards */
 .card {
-  height: 4em;
-  /* width: 6.5em; */
-  min-width: 6.5em;
-  background-color: var(--gray);
-  border-radius: 5px;
+  min-width: 8.5rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+#history-pane .card,
+#activity-console .card {
+  min-width: 8.5rem;
+  width: 8.5rem;
+}
+
+#history-pane .card.extra-width-card,
+#activity-console .card.extra-width-card {
+  min-width: 12rem;
+  width: 12rem;
+}
+
+.card.done {
+  border-color: var(--success);
 }
 
 .card .label {
-  font-size: 0.7em;
-  text-align: center;
-  background-color: var(--mid-gray);
-  color: var(--light-gray);
-  border-radius: 5px 5px 0 0;
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  padding: 0 1em;
+  letter-spacing: 0.05em;
+  padding: var(--space-sm) var(--space-sm);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card.done .label {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
 .card .body {
-  display: grid;
-  place-content: center;
-  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  min-height: 4.5rem;
+  height: 4.5rem;
 }
 
 .card .body .tile {
-  scale: 0.8;
+  width: 3rem;
+  height: 3rem;
+  font-size: 0.8rem;
 }
 
-.card .body .corp-icon {
-  height: 3em;
-  width: 3em;
+/* Ensure stocks fit in card body */
+.card .body .stocks-purchased {
+  max-width: 100%;
+}
+
+/* Corporation Icons */
+.corp-icon {
+  width: 2.5rem;
+  height: 2.5rem;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  background-color: transparent;
 }
 
-.corp-icon.phoenix {
-  background-image: url(/images/phoenix.png);
+.corp-icon.phoenix { background-image: url(/images/phoenix.png); }
+.corp-icon.quantum { background-image: url(/images/quantum.png); }
+.corp-icon.hydra { background-image: url(/images/hydra.png); }
+.corp-icon.fusion { background-image: url(/images/fusion.png); }
+.corp-icon.sackson { background-image: url(/images/sackson.png); }
+.corp-icon.america { background-image: url(/images/america.png); }
+.corp-icon.zeta { background-image: url(/images/zeta.png); }
+
+.corp-icon.conflict {
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
-.corp-icon.quantum {
-  background-image: url(/images/quantum.png);
-}
-
-.corp-icon.hydra {
-  background-image: url(/images/hydra.png);
-}
-
-.corp-icon.fusion {
-  background-image: url(/images/fusion.png);
-}
-
-.corp-icon.sackson {
-  background-image: url(/images/sackson.png);
-}
-
-.corp-icon.america {
-  background-image: url(/images/america.png);
-}
-
-.corp-icon.zeta {
-  background-image: url(/images/zeta.png);
-}
-
+/* Merger Display */
 .merger {
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
 }
 
-#display-panel {
-  display: grid;
-  grid-template-columns: auto 1fr;
+.merger p {
+  font-size: 1.2rem;
+  color: var(--text-muted);
 }
 
+/* History Panel */
 #history-pane {
   width: 0;
   height: 100%;
-  background-color: var(--gray);
-  border-right: 1px solid #f3f5f6;
-  transition: all 1s ease;
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  overflow-x: hidden;
-  margin-left: 1em;
-}
-
-#history-pane .card {
-  margin: 0 0.5em;
-  border: 1px solid white;
+  gap: var(--space-sm);
+  overflow: hidden;
+  padding: 0;
+  opacity: 0;
+  transition: 
+    width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
 }
 
 #history-pane.expanded {
-  width: 25em;
-  overflow-x: scroll;
+  width: 40rem;
+  padding: var(--space-sm) var(--space-md);
+  opacity: 1;
+  overflow-x: auto;
 }
 
-#history-pane.expanded * {
-  filter: brightness(99%);
+#history-pane .card {
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: 
+    opacity 0.3s ease 0.2s,
+    transform 0.3s ease 0.2s;
+}
+
+#history-pane.expanded .card {
+  opacity: 0.85;
+  transform: translateX(0);
+}
+
+#history-pane .card:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+/* History Button - Vertical sidebar style */
+#history-button {
+  width: 2.5rem;
+  height: 100%;
+  font-size: 0.65rem;
+  padding: var(--space-xs);
+  background: linear-gradient(90deg, rgba(30, 40, 55, 0.95) 0%, rgba(20, 28, 40, 0.98) 100%);
+  border: none;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+#history-button::before {
+  content: "◀";
+  font-size: 0.7rem;
+  margin-top: var(--space-xs);
+  transition: transform 0.3s ease;
 }
 
 #history-button:hover {
-  cursor: pointer;
+  background: linear-gradient(90deg, rgba(40, 50, 70, 0.95) 0%, rgba(30, 40, 55, 0.98) 100%);
+  color: var(--text-primary);
+  border-color: var(--primary);
 }
 
-#history-button {
-  position: absolute;
-  bottom: 5.8rem;
-  left: 14.9rem;
-  font-size: 0.7em;
-  width: 11.25em;
-  outline: none;
-  border: 1px solid var(--mid-gray);
-  transform: rotate(90deg);
+#history-button:hover::before {
+  transform: translateY(-3px);
 }
 
+/* Stocks Purchased Display */
 .stocks-purchased {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.2em;
+  gap: 4px;
   justify-content: center;
+  padding: 4px;
 }
 
 .stocks-purchased .stock {
-  height: 1.2em;
-  aspect-ratio: 1.6;
-  border-radius: 2px;
+  height: 1.6rem;
+  width: 2.2rem;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.conflict {
-  height: 4em;
-  width: 4em;
-
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-  background-color: transparent;
+/* Pending Card Animation */
+.card.pending .body {
+  position: relative;
 }
 
-.scale-mouse-pointer {
-  transition: all 500ms;
+.card.pending .body::after {
+  content: "";
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
 }
 
-.scale-mouse-pointer:hover {
-  cursor: pointer;
-  scale: 1.1;
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Select Container for Conflict Resolution */
+.select-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
 }
 
 .select-container p {
-  text-align: center;
   font-weight: 500;
-  height: 2em;
+  color: var(--text-primary);
 }
 
 .select-container .flex {
-  column-gap: 0.5em;
+  gap: var(--space-md);
 }
 
-#activity-console .card.pending .body {
-  width: 50px;
-  height: 50px;
-  display: inline-block;
-  position: relative;
-}
-#activity-console .card.pending .body::after,
-#activity-console .card.pending .body::before {
-  content: "";
-  box-sizing: border-box;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #fff;
-  position: absolute;
-  left: 94%;
-  top: 10%;
-  animation: animloader 2s linear infinite;
-}
-#activity-console .card.pending .body::after {
-  animation-delay: 1s;
+.scale-mouse-pointer {
+  cursor: pointer;
+  transition: transform var(--transition-fast);
 }
 
-@keyframes animloader {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0;
-  }
+.scale-mouse-pointer:hover {
+  transform: scale(1.1);
 }

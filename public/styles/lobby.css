@@ -1,61 +1,195 @@
+/* Lobby Waiting Room */
+
 #page {
-  text-align: center;
-  display: grid;
-  align-content: start;
-  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--space-2xl);
 }
 
 #room-info {
-  padding: 1em;
-  background-color: var(--light-gray);
-  border-radius: 5px;
-  display: grid;
-  gap: 1em;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  min-width: 600px;
+  max-width: 800px;
+  animation: fadeIn 0.5s ease;
+  box-shadow: var(--shadow-xl);
+}
+
+/* Waiting Message */
+#room-info > section:first-child {
+  text-align: center;
+  margin-bottom: var(--space-xl);
 }
 
 #message {
-  font-weight: 400;
-  font-size: 1.2em;
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: inline;
 }
 
+#animation {
+  font-family: "Orbitron", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--primary-light);
+  display: inline;
+  margin-left: 0.25rem;
+}
+
+/* Players Grid */
 #players {
-  list-style-type: none;
-  display: flex;
-  gap: 1em;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  background: var(--bg-dark);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xl);
 }
 
 #players .player {
   display: flex;
-  flex-flow: column;
-  gap: 0.5em;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--bg-card);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  min-height: 120px;
 }
 
+#players .player.joined {
+  border-style: solid;
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+/* Profile Picture */
 #players .profile-picture {
-  height: 3em;
-  aspect-ratio: 1;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  display: grid;
-  place-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all var(--transition-base);
 }
 
 #players .player:not(.joined) .profile-picture {
-  border: 1px dashed var(--mid-gray);
-  color: var(--mid-gray);
+  border: 2px dashed var(--text-muted);
+  color: var(--text-muted);
+  background: transparent;
 }
 
 #players .player:not(.joined) .profile-picture::before {
   content: "+";
+  font-weight: 300;
 }
 
 #players .player.joined .profile-picture {
-  background-color: var(--gray);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+#players .player.joined .profile-picture::before {
+  content: "";
+}
+
+/* Player Name */
+#players .name-container {
+  text-align: center;
 }
 
 #players .name {
-  min-height: 1.4em;
-  min-width: 4em;
-  background-color: var(--gray);
-  border-radius: 5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  min-width: 80px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+
+#players .player:not(.joined) .name {
+  background: var(--bg-card-hover);
+  color: transparent;
+  height: 1.5rem;
+}
+
+/* Start Button */
+#room-info > div:last-child {
+  display: flex;
+  justify-content: center;
+}
+
+#start-btn {
+  padding: 1rem 3rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+#start-btn:hover:not(.disable-click) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+}
+
+#start-btn.disable-click {
+  background: var(--mid-gray);
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+#start-btn.hide {
+  display: none;
+}
+
+/* Lobby ID Display */
+.lobby-id {
+  text-align: center;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.lobby-id code {
+  background: var(--bg-dark);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  #room-info {
+    min-width: auto;
+    width: 100%;
+    padding: var(--space-lg);
+  }
+  
+  #players {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

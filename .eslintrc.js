@@ -14,16 +14,12 @@ module.exports = {
 
   rules: {
     indent: ["error", 2, { "SwitchCase": 1 }],
-    quotes: ["error", "double"],
     semi: ["error", "always"],
     "no-constructor-return": ["error", "always"],
     "no-duplicate-imports": "error",
     "no-unmodified-loop-condition": "error",
     "no-unreachable-loop": "error",
     "no-unused-private-class-members": "error",
-    "complexity": ["error", 4],
-    "max-depth": ["error", 2],
-    // "no-shadow": "error",
   },
 
   "overrides": [

@@ -1,157 +1,185 @@
-const { range, groupBy, sortBy } = require("lodash");
+const { groupBy, sortBy } = require("lodash");
 const { Player } = require("./player");
 const { Corporation } = require("./corporation");
 const Merger = require("./merger");
 const { TurnManager, ACTIVITIES } = require("./turn-manager");
-const GAME_STATES = {
-  setup: "setup",
-  placeTile: "place-tile",
-  tilePlaced: "tile-placed",
-  establishCorporation: "establish-corporation",
-  buyStocks: "buy-stocks",
-  gameEnd: "game-end",
-  merge: "merge",
-  mergeConflict: "merge-conflict",
-  acquirerSelection: "acquirer-selection",
-  multipleDefunct: "multiple-defunct",
-  defunctSelection: "defunct-selection",
-};
+const { Board } = require("./board");
+const { TileManager } = require("./tile-manager");
+const { GameStateManager, GAME_STATES } = require("./game-state");
+const { StockMarket } = require("./stock-market");
+const { GAME_CONFIG } = require("./game-config");
 
+/**
+ * Game class - Main game orchestrator
+ * Delegates to specialized components for different concerns:
+ * - Board: tile placement and connectivity
+ * - TileManager: tile stack operations
+ * - GameStateManager: state machine
+ * - StockMarket: stock operations
+ * - TurnManager: turn history
+ * - Merger: merger logic
+ */
 class Game {
-  #tiles;
-  #state;
-  #stateInfo; // attach with state
+  #board;
+  #tileManager;
+  #stateManager;
+  #stockMarket;
+  #turnManager;
   #corporations;
-  #shuffle;
   #players;
-  #incorporatedTiles;
-  #placedTiles;
   #setupTiles;
-  #turnCount;
   #connectedTiles;
-  #handlers;
   #result;
   #merger;
-  #turnManager;
+  #turnCount;
 
   constructor(players, shuffle, corporations) {
-    this.#tiles = [];
-    this.#placedTiles = [];
-    this.#incorporatedTiles = [];
-    this.#corporations = corporations;
     this.#players = players;
-    this.#shuffle = shuffle;
-    this.#state = GAME_STATES.setup;
-    this.#stateInfo = {};
+    this.#corporations = corporations;
     this.#turnCount = 0;
+    this.#setupTiles = [];
+    this.#connectedTiles = [];
+    this.#result = null;
+    this.#merger = null;
+    this.#board = new Board(GAME_CONFIG.BOARD_ROWS, GAME_CONFIG.BOARD_COLS);
+    this.#tileManager = new TileManager(shuffle, GAME_CONFIG.BOARD_ROWS, GAME_CONFIG.BOARD_COLS);
+    this.#stateManager = new GameStateManager(GAME_STATES.SETUP);
     this.#turnManager = new TurnManager();
   }
 
-  #createTilesStack() {
-    this.#tiles = range(9).flatMap(x =>
-      range(12).map(y => ({ position: { x, y }, isPlaced: false }))
-    );
+  setup() {
+    this.#tileManager.createTiles().shuffle();
+    this.#provideInitialAssets();
+    this.#decidePlayingOrder();
+    this.#initializeStockMarket();
   }
 
-  #pickTile() {
-    return this.#tiles.shift();
+  start() {
+    this.setup();
+    this.#stateManager.forceTransition(GAME_STATES.PLACE_TILE);
+    this.#currentPlayer().startTurn();
+    this.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
   }
 
-  #provideInitialTiles(player, quantity = 6) {
-    this.#tiles.splice(0, quantity).forEach(tile => player.addTile(tile));
-  }
-
-  #provideInitialAsset() {
-    const initialAmount = 6000;
+  #provideInitialAssets() {
     this.#players.forEach(player => {
-      player.addIncome(initialAmount);
-      this.#provideInitialTiles(player);
+      player.addIncome(GAME_CONFIG.INITIAL_BALANCE);
+      this.#tileManager.distributeToPlayer(player, GAME_CONFIG.TILES_PER_PLAYER);
     });
   }
 
-  #shuffleTiles() {
-    this.#tiles = this.#shuffle(this.#tiles);
-  }
+  #decidePlayingOrder() {
+    this.#setupTiles = this.#players.map(player => [player, this.#tileManager.pickTile()]);
 
-  #addToIncorporatedTiles(tile) {
-    tile.isPlaced = true;
-    this.#incorporatedTiles.push(tile);
-  }
+    const sortedTiles = [...this.#setupTiles].sort(([, a], [, b]) => {
+      return a.position.x - b.position.x || a.position.y - b.position.y;
+    });
 
-  #findConnectedTiles({ x, y }, grid = []) {
-    const tile = this.#placedTiles.find(
-      ({ position }) => position.x === x && position.y === y
-    );
+    this.#players = sortedTiles.map(([player]) => player);
 
-    if (tile && !grid.includes(tile)) {
-      grid.push(tile);
-      this.#findConnectedTiles({ x: x + 1, y }, grid);
-      this.#findConnectedTiles({ x: x - 1, y }, grid);
-      this.#findConnectedTiles({ x, y: y + 1 }, grid);
-      this.#findConnectedTiles({ x, y: y - 1 }, grid);
-    }
-
-    return grid;
-  }
-
-  #markUnplayableTiles() {
-    this.#players.forEach(player => {
-      const { tiles } = player.portfolio();
-
-      tiles.forEach(tile => {
-        if (!tile) return;
-        this.#placedTiles.push(tile);
-
-        const connectedTiles = this.#findConnectedTiles(tile.position);
-        const groupedTiles = groupBy(connectedTiles, "belongsTo");
-        const adjacentCorps = Object.keys(groupedTiles);
-        const safeCorporations = adjacentCorps.filter(corp => {
-          if (corp === "undefined" || corp === "incorporated") return false;
-          return this.#corporations[corp].isSafe;
-        });
-
-        if (safeCorporations.length > 1) {
-          // Todo: Change contract to boolean
-          tile.exchange = "yes";
-        }
-
-        this.#placedTiles.pop();
-      });
+    sortedTiles.forEach(([, tile]) => {
+      this.#board.placeTile(tile.position, "incorporated");
     });
   }
 
-  #growCorporation = name => {
-    const corporation = this.#corporations[name];
+  #initializeStockMarket() {
+    this.#stockMarket = new StockMarket(this.#corporations, this.#players);
+  }
 
-    const connectedIncorporatedTiles = this.#connectedTiles.filter(
-      ({ belongsTo }) => belongsTo === "incorporated"
-    );
+  #currentPlayer() {
+    return this.#players[this.#turnCount % this.#players.length];
+  }
 
-    connectedIncorporatedTiles.forEach(tile => (tile.belongsTo = name));
-    const isMerging = this.#state === GAME_STATES.merge;
+  currentPlayerName() {
+    return this.#currentPlayer().username;
+  }
 
-    if (!isMerging) {
-      corporation.increaseSize(connectedIncorporatedTiles.length);
+  changeTurn() {
+    if (this.#checkGameEnd()) {
+      this.#endGame();
+      return;
     }
-    //TODO: Refactor
-    if (corporation.stats().size > 10) {
-      corporation.markSafe();
-      this.#markUnplayableTiles();
-    }
-  };
 
-  #consolidateTile(position) {
-    const tile = { position, isPlaced: true, belongsTo: "incorporated" };
+    this.#refillPlayerTile();
+    this.#currentPlayer().endTurn();
+    this.#turnCount++;
+    this.#currentPlayer().startTurn();
 
+    this.#stateManager.forceTransition(GAME_STATES.PLACE_TILE);
+    this.#turnManager.changeTurn();
+    this.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
+  }
+
+  #refillPlayerTile() {
+    const currentPlayer = this.#currentPlayer();
+    const newTile = this.#tileManager.pickTile();
+    currentPlayer.refillTile(newTile);
+
+    const { tiles } = currentPlayer.portfolio();
+    const exchangedTiles = tiles.map(tile => {
+      if (tile && tile.exchange === "yes") {
+        return this.#tileManager.pickTile();
+      }
+      return tile;
+    });
+    currentPlayer.exchangeTiles(exchangedTiles);
+  }
+
+  placeTile(username, position) {
+    const player = this.#players.find(p => p.username === username);
+    const tile = this.#board.placeTile(position, "incorporated");
     this.#turnManager.consolidateActivity(tile);
-    this.#placedTiles.push(tile);
-    this.#addToIncorporatedTiles(tile);
-    this.#connectedTiles = this.#findConnectedTiles(position);
+    this.#connectedTiles = this.#board.findConnectedTiles(position);
+    const groupedTiles = this.#board.groupTilesByCorporation(this.#connectedTiles);
+    player.placeTile(position);
+    this.#handleTilePlacement(groupedTiles);
+  }
 
-    const groupedTiles = groupBy(this.#connectedTiles, "belongsTo");
+  #handleTilePlacement(groupedTiles) {
+    if (this.#canEstablishCorporation(groupedTiles)) {
+      this.#stateManager.forceTransition(GAME_STATES.ESTABLISH_CORPORATION);
+      this.#turnManager.initiateActivity(ACTIVITIES.establish);
+      return;
+    }
 
-    const { handler } = this.#handlers.find(({ match }) => match(groupedTiles));
-    handler(groupedTiles);
+    if (this.#canGrowCorporation(groupedTiles)) {
+      const corpName = Object.keys(groupedTiles).find(name => name !== "incorporated");
+      this.#growCorporation(corpName);
+      this.#stateManager.forceTransition(GAME_STATES.BUY_STOCKS);
+      this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
+      return;
+    }
+
+    if (this.#hasMergeConflict(groupedTiles)) {
+      this.#handleMergeConflict();
+      return;
+    }
+
+    if (this.#hasMultipleMerge(groupedTiles)) {
+      this.#handleMultipleMerge();
+      return;
+    }
+
+    if (this.#hasTwoCorpMerge(groupedTiles)) {
+      const [acquirer, defunct] = this.#findMergingCorporations();
+      this.mergeTwoCorporation({ acquirer: acquirer.name, defunct: defunct.name });
+      return;
+    }
+
+    this.#stateManager.forceTransition(GAME_STATES.BUY_STOCKS);
+    this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
+  }
+
+  #canEstablishCorporation(groupedTiles) {
+    const hasInactiveCorp = Object.values(this.#corporations).some(corp => !corp.isActive);
+    return Object.keys(groupedTiles).length === 1 &&
+           groupedTiles.incorporated?.length > 1 &&
+           hasInactiveCorp;
+  }
+
+  #canGrowCorporation(groupedTiles) {
+    return Object.keys(groupedTiles).length === 2 &&
+           groupedTiles.incorporated?.length >= 1;
   }
 
   establishCorporation({ name }) {
@@ -160,53 +188,144 @@ class Game {
 
     corporation.establish();
     this.#growCorporation(name);
-
     player.addStocks(name, 1);
     corporation.decrementStocks(1);
 
-    this.#state = GAME_STATES.buyStocks;
+    this.#stateManager.forceTransition(GAME_STATES.BUY_STOCKS);
     this.#turnManager.consolidateActivity({ name });
     this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
   }
 
-  // TODO: Remove username
-  placeTile(username, position) {
-    // if (!this.#turnManager.isIn(ACTIVITIES.tilePlace)) {
-    //   throw new Error("Invalid Move!");
-    // }
+  #growCorporation(name) {
+    const corporation = this.#corporations[name];
+    const incorporatedTiles = this.#connectedTiles.filter(
+      ({ belongsTo }) => belongsTo === "incorporated"
+    );
 
-    const player = this.#players.find(player => player.username === username);
-    this.#consolidateTile(position);
-    player.placeTile(position);
+    this.#board.assignTilesToCorporation(incorporatedTiles, name);
+
+    if (!this.#stateManager.isMerging) {
+      corporation.increaseSize(incorporatedTiles.length);
+    }
+
+    if (corporation.stats().size > 10) {
+      corporation.markSafe();
+      this.#markUnplayableTiles();
+    }
   }
 
-  #decidePlayingOrder() {
-    this.#setupTiles = this.#players.map(player => [player, this.#pickTile()]);
+  #markUnplayableTiles() {
+    this.#players.forEach(player => {
+      const { tiles } = player.portfolio();
 
-    const firstTiles = this.#setupTiles.toSorted(([, a], [, b]) => {
-      return a.position.x - b.position.x || a.position.y - b.position.y;
-    });
+      tiles.forEach(tile => {
+        if (!tile || tile.isPlaced) return;
 
-    this.#players = firstTiles.map(([a]) => a);
+        const adjacentTiles = this.#board.getAdjacentTiles(tile.position);
+        const groupedTiles = this.#board.groupTilesByCorporation(adjacentTiles);
+        const adjacentCorps = Object.keys(groupedTiles);
+        
+        const safeCorporations = adjacentCorps.filter(corp => {
+          if (corp === "undefined" || corp === "incorporated") return false;
+          return this.#corporations[corp]?.isSafe;
+        });
 
-    firstTiles.forEach(([, tile]) => {
-      this.#placedTiles.push({
-        ...tile,
-        belongsTo: "incorporated",
-        isPlaced: true,
+        if (safeCorporations.length > 1) {
+          tile.exchange = "yes";
+        }
       });
-
-      this.#addToIncorporatedTiles(tile);
     });
   }
 
-  currentPlayerName() {
-    const currentPlayer = this.#currentPlayer();
-    return currentPlayer.username;
+  #findMergingCorporations() {
+    const corporatedTiles = this.#connectedTiles.filter(
+      ({ belongsTo }) => belongsTo !== "incorporated"
+    );
+    const groupedTiles = groupBy(corporatedTiles, "belongsTo");
+    const corps = Object.keys(groupedTiles).map(name => this.#corporations[name]);
+    return sortBy(corps, corp => corp.size).reverse();
   }
 
-  #currentPlayer() {
-    return this.#players[this.#turnCount % this.#players.length];
+  #hasTwoCorpMerge(groupedTiles) {
+    return Object.keys(groupedTiles).length === 3;
+  }
+
+  #hasMergeConflict(groupedTiles) {
+    if (Object.keys(groupedTiles).length !== 3) return false;
+    const [corp1, corp2] = this.#findMergingCorporations();
+    return corp1.size === corp2.size;
+  }
+
+  #hasMultipleMerge(groupedTiles) {
+    return Object.keys(groupedTiles).length > 3;
+  }
+
+  #handleMergeConflict() {
+    this.#stateManager.forceTransition(GAME_STATES.MERGE_CONFLICT);
+    const equalCorporations = this.#findMergingCorporations().map(corp => corp.name);
+
+    this.#turnManager.initiateActivity(ACTIVITIES.mergeConflict);
+    this.#stateManager.setInfo({ isMergeConflict: true, equalCorporations });
+    this.#turnManager.consolidateActivity(equalCorporations);
+  }
+
+  #handleMultipleMerge() {
+    const mergingCorporations = this.#findMergingCorporations();
+    const acquirerSize = mergingCorporations[0].size;
+    const potentialAcquirers = mergingCorporations.filter(corp => corp.size === acquirerSize);
+
+    if (potentialAcquirers.length > 1) {
+      this.#stateManager.forceTransition(GAME_STATES.ACQUIRER_SELECTION);
+      const acquirerNames = potentialAcquirers.map(corp => corp.name);
+      this.#turnManager.initiateActivity(ACTIVITIES.acquirerSelection);
+      this.#turnManager.consolidateActivity(acquirerNames);
+      return;
+    }
+
+    const [acquirer] = potentialAcquirers;
+    this.#stateManager.setInfo({ acquirer: acquirer.name });
+
+    const potentialDefunct = mergingCorporations.filter(corp => corp.size !== acquirerSize);
+    const defunctSize = potentialDefunct[0]?.size;
+    const equalDefunct = potentialDefunct.filter(corp => corp.size === defunctSize);
+
+    if (equalDefunct.length > 1) {
+      this.#handleMultipleDefunct(equalDefunct);
+      return;
+    }
+
+    const [defunct] = potentialDefunct;
+    this.mergeTwoCorporation({ acquirer: acquirer.name, defunct: defunct.name }, true);
+  }
+
+  #handleMultipleDefunct(potentialDefunct) {
+    const existingInfo = this.#stateManager.info;
+    this.#stateManager.forceTransition(GAME_STATES.DEFUNCT_SELECTION, existingInfo);
+    const defunctNames = potentialDefunct.map(corp => corp.name);
+
+    this.#turnManager.initiateActivity(ACTIVITIES.defunctSelection);
+    this.#turnManager.consolidateActivity(defunctNames);
+  }
+
+  selectAcquirer(acquirerName) {
+    this.#stateManager.setInfo({ acquirer: acquirerName });
+    const mergingCorporations = this.#findMergingCorporations();
+    const otherThanAcquirer = mergingCorporations.filter(corp => corp.name !== acquirerName);
+
+    const defunctSize = otherThanAcquirer[0].size;
+    const potentialDefunct = otherThanAcquirer.filter(corp => corp.size === defunctSize);
+
+    if (potentialDefunct.length > 1) {
+      return this.#handleMultipleDefunct(potentialDefunct);
+    }
+
+    const [defunct] = potentialDefunct;
+    this.mergeTwoCorporation({ acquirer: acquirerName, defunct: defunct.name }, true);
+  }
+
+  confirmDefunct(defunct) {
+    const { acquirer } = this.#stateManager.info;
+    this.mergeTwoCorporation({ acquirer, defunct }, true);
   }
 
   mergeTwoCorporation({ acquirer, defunct }, multipleMerge = false) {
@@ -216,249 +335,112 @@ class Game {
       this.#connectedTiles,
       multipleMerge
     );
-    // change
     this.#merger.start(acquirer, defunct);
-    this.distributeMajorityMinority(this.#merger.defunct);
-    this.#state = GAME_STATES.merge;
-    this.#turnManager.initiateActivity(ACTIVITIES.merge);
-    this.#stateInfo = {
+
+    const bonusStats = this.#stockMarket.distributeBonuses(defunct);
+
+    this.#stateManager.forceTransition(GAME_STATES.MERGE, {
       acquirer: this.#merger.acquirer,
       defunct: this.#merger.defunct,
-    };
+    });
+    this.#turnManager.initiateActivity(ACTIVITIES.merge);
 
-    this.#consolidateMergeActivity();
+    this.#consolidateMergeActivity(bonusStats);
   }
 
-  #handleMultipleDefunct(potentialDefunct) {
-    this.#state = GAME_STATES.defunctSelection;
-    const defunctNames = potentialDefunct.map(corp => corp.name);
-
-    this.#turnManager.initiateActivity(ACTIVITIES.defunctSelection);
-    this.#turnManager.consolidateActivity(defunctNames);
-  }
-
-  selectAcquirer(acquirerName) {
-    this.#stateInfo.acquirer = acquirerName;
-    const mergingCorporations = this.#findMergingCorporations();
-
-    const otherThanAcquirer = mergingCorporations.filter(
-      corp => corp.name !== acquirerName
-    );
-
-    const defunctSize = otherThanAcquirer[0].size;
-    const potentialDefunct = otherThanAcquirer.filter(
-      corp => corp.size === defunctSize
-    );
-
-    if (potentialDefunct.length > 1) {
-      return this.#handleMultipleDefunct(potentialDefunct);
-    }
-
-    const [defunct] = potentialDefunct;
-    this.mergeTwoCorporation(
-      { acquirer: acquirerName, defunct: defunct.name },
-      true
-    );
-  }
-
-  confirmDefunct(defunct) {
-    const { acquirer } = this.#stateInfo;
-    this.mergeTwoCorporation({ acquirer, defunct }, true);
-  }
-
-  #findMergingCorporations() {
-    const corporatedTiles = this.#connectedTiles.filter(
-      ({ belongsTo }) => belongsTo !== "incorporated"
-    );
-
-    const groupedTiles = groupBy(corporatedTiles, "belongsTo");
-    const corps = Object.keys(groupedTiles).map(
-      name => this.#corporations[name]
-    );
-    return sortBy(corps, corp => corp.size).reverse();
-  }
-
-  #mergeOfTwoEqualCorpHandler() {
-    this.#state = GAME_STATES.mergeConflict;
-    const equalCorporations = this.#findMergingCorporations().map(
-      corp => corp.name
-    );
-
-    this.#turnManager.initiateActivity(ACTIVITIES.mergeConflict);
-    this.#stateInfo = { isMergeConflict: true, equalCorporations };
-
-    this.#turnManager.consolidateActivity(equalCorporations);
-  }
-
-  #findPotentialDefunct(mergingCorporations, predicate) {
-    const otherThanAcquirers = mergingCorporations.filter(predicate);
-    // corporation => corporation.size !== acquirerSize
-    // );
-
-    const defunctSize = otherThanAcquirers[0].size;
-
-    return otherThanAcquirers.filter(
-      corporation => corporation.size === defunctSize
-    );
-  }
-
-  #handleMultipleMerging() {
-    const mergingCorporations = this.#findMergingCorporations();
-    const acquirerSize = mergingCorporations[0].size;
-
-    const potentialAcquirers = mergingCorporations.filter(
-      corporation => corporation.size === acquirerSize
-    );
-
-    if (potentialAcquirers.length > 1) {
-      this.#state = GAME_STATES.acquirerSelection;
-      const acquirerNames = potentialAcquirers.map(corp => corp.name);
-      this.#turnManager.initiateActivity(ACTIVITIES.acquirerSelection);
-      this.#turnManager.consolidateActivity(acquirerNames);
-
-      return;
-    }
-
-    const [acquirer] = potentialAcquirers;
-    this.#stateInfo.acquirer = acquirer.name;
-    const isValidDefunct = corp => corp.size !== acquirerSize;
-    const potentialDefunct = this.#findPotentialDefunct(
-      mergingCorporations,
-      isValidDefunct
-    );
-
-    if (potentialDefunct.length > 1) {
-      this.#handleMultipleDefunct(potentialDefunct);
-      // this.#handleMultipleDefunct(() =>this.#findPotentialDefunct(mergingCorporations, isValidDefunct)
-      // );
-
-      // this.#state = GAME_STATES.defunctSelection;
-      // const defunctNames = potentialDefunct.map(corp => corp.name);
-
-      // this.#turnManager.initiateActivity(ACTIVITIES.defunctSelection);
-      // this.#turnManager.consolidateActivity(defunctNames);
-      return;
-    }
-
-    const [defunct] = potentialDefunct;
-    this.mergeTwoCorporation(
-      {
-        acquirer: acquirer.name,
-        defunct: defunct.name,
-      },
-      true
-    );
-  }
-
-  // TODO: Refactor it
-  #setupHandlers() {
-    const noActiveCorporation = () =>
-      Object.values(this.#corporations).find(corp => !corp.isActive);
-
-    const foundCorporation = groupedTiles =>
-      Object.keys(groupedTiles).length === 1 &&
-      groupedTiles.incorporated.length > 1 &&
-      noActiveCorporation();
-
-    const growCorporation = groupedTiles =>
-      Object.keys(groupedTiles).length === 2 &&
-      groupedTiles.incorporated.length >= 1;
-
-    const isMergingOfTwo = groupedTiles =>
-      Object.keys(groupedTiles).length === 3;
-
-    const isEqualSizeCorp = (corp1, corp2) => corp1.size === corp2.size;
-
-    const isMergeOfTwoEqualCorp = groupedTiles => {
-      const [corp1, corp2] = this.#findMergingCorporations();
-      return isMergingOfTwo(groupedTiles) && isEqualSizeCorp(corp1, corp2);
-    };
-
-    const isMultipleMerge = groupedTiles =>
-      Object.keys(groupedTiles).length > 3;
-
-    this.#handlers = [
-      {
-        match: foundCorporation,
-        handler: () => {
-          this.#state = GAME_STATES.establishCorporation;
-          this.#turnManager.initiateActivity(ACTIVITIES.establish);
-        },
-      },
-      {
-        match: growCorporation,
-        handler: groupedTiles => {
-          const name = Object.keys(groupedTiles).find(
-            belongsTo => belongsTo !== "incorporated"
-          );
-
-          this.#growCorporation(name);
-          this.#state = GAME_STATES.buyStocks;
-          this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
-        },
-      },
-      {
-        match: isMultipleMerge,
-        handler: () => {
-          this.#handleMultipleMerging();
-        },
-      },
-      {
-        match: isMergeOfTwoEqualCorp,
-        handler: () => {
-          this.#mergeOfTwoEqualCorpHandler();
-        },
-      },
-      {
-        match: isMergingOfTwo,
-        handler: () => {
-          const [corp1, corp2] = this.#findMergingCorporations();
-          const [acquirer, defunct] = [corp1.name, corp2.name];
-          this.mergeTwoCorporation({ acquirer, defunct });
-        },
-      },
-      {
-        match: () => true,
-        handler: () => {
-          this.#state = GAME_STATES.buyStocks;
-          this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
-        },
-      },
-    ];
-  }
-
-  endMerge() {
-    this.#state = GAME_STATES.buyStocks;
-    this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
-  }
-
-  #consolidateMergeActivity() {
+  #consolidateMergeActivity(bonusStats) {
     this.#turnManager.consolidateActivity({
       acquirer: this.#merger.acquirer,
       defunct: this.#merger.defunct,
       turns: this.#merger.getTurns(),
-      ...this.distributeMajorityMinority.stats,
+      ...bonusStats,
     });
   }
 
-  setup() {
-    this.#createTilesStack();
-    this.#shuffleTiles();
-    this.#provideInitialAsset();
-    this.#decidePlayingOrder();
-    this.#setupHandlers();
+  dealDefunctStocks({ sell, trade }) {
+    this.#merger.deal(this.#currentPlayer(), sell, trade);
+    this.endMergerTurn();
   }
 
-  start() {
-    this.setup();
-    this.#state = GAME_STATES.placeTile;
+  endMergerTurn() {
+    this.#merger.endTurn();
+    this.#currentPlayer().endTurn();
+    this.#turnCount++;
     this.#currentPlayer().startTurn();
-    this.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
+
+    const bonusStats = this.#stockMarket.distributeBonuses(this.#merger.defunct);
+    this.#consolidateMergeActivity(bonusStats);
+
+    if (this.#merger.hasEnd()) {
+      this.#merger.end();
+      this.#markUnplayableTiles();
+
+      const groupedTiles = this.#board.groupTilesByCorporation(this.#connectedTiles);
+      this.#handleTilePlacement(groupedTiles);
+    }
+  }
+
+  endMerge() {
+    this.#stateManager.forceTransition(GAME_STATES.BUY_STOCKS);
+    this.#turnManager.initiateActivity(ACTIVITIES.buyStocks);
+  }
+
+  buyStocks(stocks) {
+    const player = this.#currentPlayer();
+    const purchased = this.#stockMarket.buyStocks(player, stocks);
+
+    this.#stateManager.forceTransition(GAME_STATES.TILE_PLACED);
+    this.#turnManager.consolidateActivity(purchased);
+  }
+
+  #checkGameEnd() {
+    const activeCorporations = Object.values(this.#corporations).filter(corp => corp.isActive);
+
+    if (activeCorporations.length === 0) return false;
+
+    const hasLargeCorp = activeCorporations.some(corp => corp.size >= GAME_CONFIG.GAME_END_SIZE);
+    const allSafe = activeCorporations.every(corp => corp.isSafe);
+
+    return hasLargeCorp || allSafe;
+  }
+
+  #endGame() {
+    this.#stateManager.forceTransition(GAME_STATES.GAME_END);
+    this.#result = { players: [], bonuses: [] };
+    this.#calculateFinalEarnings();
+  }
+
+  #calculateFinalEarnings() {
+    const activeCorporations = Object.entries(this.#corporations)
+      .filter(([, corp]) => corp.isActive);
+
+    activeCorporations.forEach(([name]) => {
+      const bonusStats = this.#stockMarket.distributeBonuses(name);
+      this.#result.bonuses.push(bonusStats);
+      this.#stockMarket.liquidateCorporation(name);
+    });
+
+    this.#result.players = this.#players.map(player => {
+      const { stocks, balance } = player.portfolio();
+      return { stocks, balance, name: player.username };
+    });
+  }
+
+  status(username) {
+    return {
+      state: this.#stateManager.state,
+      stateInfo: this.#stateManager.info,
+      setupTiles: this.#setupTiles.map(([player, tile]) => [player.username, tile]),
+      turns: this.#getTurns(username),
+      players: this.#getPlayers(username),
+      portfolio: this.playerDetails(username),
+      corporations: this.#getCorporationStats(),
+      placedTiles: this.#board.placedTiles,
+    };
   }
 
   playerDetails(username) {
-    // TODO: make it private
-    const player = this.#players.find(player => player.username === username);
+    const player = this.#players.find(p => p.username === username);
     return player.portfolio();
   }
 
@@ -470,132 +452,6 @@ class Game {
     }));
   }
 
-  #refillTile() {
-    const currentPlayer = this.#currentPlayer();
-    const newTile = this.#pickTile();
-    currentPlayer.refillTile(newTile);
-
-    const { tiles } = currentPlayer.portfolio();
-    const exchangedTiles = tiles.map(tile => {
-      if (tile && tile.exchange === "yes") return this.#pickTile();
-      return tile;
-    });
-
-    currentPlayer.exchangeTiles(exchangedTiles);
-  }
-
-  #isGameOver() {
-    const activeCorporations = Object.entries(this.#corporations).filter(
-      ([, { isActive }]) => isActive
-    );
-
-    if (activeCorporations.length === 0) return false;
-
-    const hasAcquired41Tiles = activeCorporations.some(
-      ([, corp]) => corp.size >= 41
-    );
-
-    const isEveryCorpStable = activeCorporations.every(
-      ([, corp]) => corp.isSafe
-    );
-
-    return hasAcquired41Tiles || isEveryCorpStable;
-  }
-
-  #calculateEarnings() {
-    const activeCorporations = Object.entries(this.#corporations).filter(
-      ([, { isActive }]) => isActive
-    );
-
-    activeCorporations.forEach(([name, corporation]) => {
-      this.distributeMajorityMinority(name);
-      this.#result.bonuses.push(this.distributeMajorityMinority.stats);
-
-      this.#players.forEach(player => {
-        const { stocks } = player.portfolio();
-        const noOfStocks = stocks[name];
-        const { price: currentPrice } = corporation.stats();
-
-        player.sellStocks(name, noOfStocks);
-        player.addIncome(noOfStocks * currentPrice);
-        corporation.incrementStocks(noOfStocks);
-      });
-    });
-
-    const players = this.#players.map(player => {
-      const { stocks, balance } = player.portfolio();
-
-      return {
-        stocks,
-        balance,
-        name: player.username,
-      };
-    });
-
-    this.#result.players = players;
-  }
-
-  changeTurn() {
-    if (this.#isGameOver()) {
-      this.#state = GAME_STATES.gameEnd;
-      this.#result = { players: [], bonuses: [] };
-      this.#calculateEarnings();
-      return;
-    }
-
-    this.#refillTile();
-    this.#currentPlayer().endTurn();
-    this.#turnCount++;
-    this.#currentPlayer().startTurn();
-
-    this.#state = GAME_STATES.placeTile;
-    this.#turnManager.changeTurn();
-    this.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
-  }
-
-  endMergerTurn() {
-    this.#merger.endTurn();
-    this.#currentPlayer().endTurn();
-    this.#turnCount++;
-    this.#currentPlayer().startTurn();
-
-    this.#consolidateMergeActivity();
-
-    // reconsolidate
-    if (this.#merger.hasEnd()) {
-      this.#merger.end();
-      this.#markUnplayableTiles();
-      const groupedTiles = groupBy(this.#connectedTiles, "belongsTo");
-
-      const { handler } = this.#handlers.find(({ match }) =>
-        match(groupedTiles)
-      );
-      handler(groupedTiles);
-    }
-  }
-
-  dealDefunctStocks({ sell, trade }) {
-    this.#merger.deal(this.#currentPlayer(), sell, trade);
-    this.endMergerTurn();
-  }
-
-  buyStocks(stocks) {
-    const player = this.#currentPlayer();
-
-    stocks.forEach(({ name }) => {
-      const corp = this.#corporations[name];
-      const { isActive, stocks, price } = corp.stats();
-      if (isActive && stocks >= 1 && player.balance >= price) {
-        corp.decrementStocks(1);
-        player.addExpense(price);
-        player.addStocks(name, 1);
-      }
-    });
-
-    this.#state = GAME_STATES.tilePlaced;
-    this.#turnManager.consolidateActivity(stocks.map(({ name }) => name));
-  }
-
   #getCorporationStats() {
     return Object.fromEntries(
       Object.entries(this.#corporations).map(([name, corporation]) => [
@@ -605,26 +461,6 @@ class Game {
     );
   }
 
-  findMajorityMinority(corpName) {
-    const getStocks = player => player.portfolio().stocks[corpName];
-    const stockHolders = this.#players.filter(getStocks);
-    const [majority, minority] = Object.entries(
-      groupBy(stockHolders, getStocks)
-    )
-      .map(([stock, players]) => ({
-        stock: parseInt(stock),
-        players: players,
-        playerNames: players.map(p => p.username),
-      }))
-      .sort((a, b) => b.stock - a.stock)
-      .slice(0, 2);
-
-    return {
-      majority: majority || { stock: 0, players: [], playerNames: [] },
-      minority: minority || { stock: 0, players: [], playerNames: [] },
-    };
-  }
-
   #getTurns(username) {
     const turns = this.#turnManager.getTurns();
     const player = this.#currentPlayer();
@@ -632,94 +468,40 @@ class Game {
       you: player.username === username,
       username: player.username,
     };
-
     return turns;
-  }
-
-  distributeMajorityMinority(corpName) {
-    // TODO refactor
-    const corp = this.#corporations[corpName];
-    const { majorityPrice, minorityPrice } = corp.stats();
-    const { majority, minority } = this.findMajorityMinority(corpName);
-
-    if (majority.players.length > 1 || minority.players.length === 0) {
-      const sharePrice =
-        (majorityPrice + minorityPrice) / majority.players.length;
-      majority.players.forEach(player => {
-        player.addIncome(sharePrice);
-      });
-
-      // Refactor
-      this.distributeMajorityMinority.stats = {
-        corporation: corpName,
-        majority: {
-          bonus: majorityPrice,
-          players: majority.playerNames,
-          stocks: majority.stock,
-        },
-        minority: {
-          bonus: minorityPrice,
-          players: majority.playerNames,
-          stocks: minority.stock,
-        },
-      };
-      return;
-    }
-
-    majority.players[0].addIncome(majorityPrice);
-    const sharePrice = minorityPrice / minority.players.length;
-    minority.players.forEach(player => {
-      player.addIncome(sharePrice);
-    });
-
-    this.distributeMajorityMinority.stats = {
-      corporation: corpName,
-      majority: {
-        bonus: majorityPrice,
-        players: majority.playerNames,
-        stocks: majority.stock,
-      },
-      minority: {
-        bonus: minorityPrice,
-        players: minority.playerNames,
-        stocks: minority.stock,
-      },
-    };
-  }
-
-  status(username) {
-    return {
-      state: this.#state,
-      stateInfo: this.#stateInfo,
-      setupTiles: this.#setupTiles.map(([player, tile]) => [
-        player.username,
-        tile,
-      ]),
-      turns: this.#getTurns(username),
-      players: this.#getPlayers(username),
-      portfolio: this.playerDetails(username),
-      corporations: this.#getCorporationStats(),
-      placedTiles: this.#placedTiles,
-    };
   }
 
   get result() {
     return this.#result;
   }
 
-  static fromJSON({ tiles, players, corporations, setupTiles, placedTiles }) {
-    const game = new Game();
+  findMajorityMinority(corpName) {
+    return this.#stockMarket.findShareholderGroups(corpName);
+  }
 
-    game.#state = GAME_STATES.placeTile;
-    game.#tiles = tiles;
-    game.#corporations = corporations;
-    game.#players = players;
-    game.#placedTiles = placedTiles;
+  distributeMajorityMinority(corpName) {
+    const stats = this.#stockMarket.distributeBonuses(corpName);
+    this.distributeMajorityMinority.stats = stats;
+    return stats;
+  }
+
+  static fromJSON({ tiles, players, corporations, setupTiles, placedTiles }) {
+    const game = new Game(players, () => [], corporations);
+
+    game.#stateManager.forceTransition(GAME_STATES.PLACE_TILE);
     game.#setupTiles = setupTiles;
     game.#turnCount = 0;
 
+    placedTiles.forEach(tile => {
+      game.#board.placeTile(tile.position, tile.belongsTo);
+    });
+
+    if (tiles && tiles.length > 0) {
+      game.#tileManager = TileManager.fromJSON(tiles, () => []);
+    }
+
+    game.#initializeStockMarket();
     players[0].startTurn();
-    game.#setupHandlers();
     game.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
 
     return game;
@@ -743,5 +525,17 @@ const loadGame = gameData => {
 module.exports = {
   Game,
   loadGame,
-  GAME_STATES,
+  GAME_STATES: {
+    setup: GAME_STATES.SETUP,
+    placeTile: GAME_STATES.PLACE_TILE,
+    tilePlaced: GAME_STATES.TILE_PLACED,
+    establishCorporation: GAME_STATES.ESTABLISH_CORPORATION,
+    buyStocks: GAME_STATES.BUY_STOCKS,
+    gameEnd: GAME_STATES.GAME_END,
+    merge: GAME_STATES.MERGE,
+    mergeConflict: GAME_STATES.MERGE_CONFLICT,
+    acquirerSelection: GAME_STATES.ACQUIRER_SELECTION,
+    multipleDefunct: GAME_STATES.DEFUNCT_SELECTION,
+    defunctSelection: GAME_STATES.DEFUNCT_SELECTION,
+  },
 };

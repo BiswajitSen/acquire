@@ -26,3 +26,10 @@ const generateComponent = ([tagName, children, attributes = {}]) => {
 
   return element;
 };
+
+const getLobbyIdFromPath = () => {
+  const pathParts = window.location.pathname.split("/");
+  return pathParts[2];
+};
+
+const getGameBaseUrl = () => `/game/${getLobbyIdFromPath()}`;

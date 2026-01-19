@@ -1,10 +1,14 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>Acquire - Home</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acquire - The Classic Board Game</title>
     <link rel="stylesheet" href="/styles/style.css" />
     <link rel="stylesheet" href="/styles/page-layout.css" />
     <link rel="stylesheet" href="/styles/index.css" />
-    <script src="/scripts/index.js"></script>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+    <script src="/scripts/index.js" type="module"></script>
   </head>
   <body>
     <div id="root">
@@ -12,20 +16,43 @@
         <h1 id="heading">ACQUIRE</h1>
       </header>
       <main id="page">
-        <form id="join-form">
-          <label for="username-field">Choose a display name</label>
-          <section>
-            <input
-              type="text"
-              placeholder="Display name"
-              name="username"
-              id="username-field"
-              required
-            />
-            <input type="submit" value="Join" />
-          </section>
+        <section id="lobby-options">
+          <div id="host-section">
+            <h2>Host a Game</h2>
+            <form id="host-form">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                name="username"
+                id="host-username"
+                autocomplete="off"
+                required
+              />
+              <input type="submit" value="Create Lobby" />
+            </form>
+          </div>
+
+          <div id="join-section">
+            <h2>Join a Game</h2>
+            <div id="lobby-list">
+              <p id="loading-message">Looking for games...</p>
+            </div>
+            <form id="join-form" class="hide">
+              <input
+                type="text"
+                placeholder="Enter your name"
+                name="username"
+                id="join-username"
+                autocomplete="off"
+                required
+              />
+              <input type="hidden" name="lobbyId" id="selected-lobby-id" />
+              <input type="submit" value="Join Game" />
+            </form>
+          </div>
+
           <p id="message"></p>
-        </form>
+        </section>
       </main>
     </div>
   </body>

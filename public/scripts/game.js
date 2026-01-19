@@ -8,8 +8,17 @@ import { resolveMergeConflict } from "/scripts/merge-conflict.js";
 import DisplayPanel from "/scripts/components/display-panel.js";
 import { selectAcquirer } from "/scripts/multiple-acquirer.js";
 import { selectDefunct } from "/scripts/multiple-defunct.js";
+import { socketClient } from "/scripts/socket-client.js";
+import { voiceChat } from "/scripts/voice-chat.js";
 
 let previousState;
+
+const getLobbyIdFromUrl = () => {
+  const pathParts = window.location.pathname.split("/");
+  return pathParts[2];
+};
+
+const getGameBaseUrl = () => `/game/${getLobbyIdFromUrl()}`;
 
 const CORPORATIONS = [
   "phoenix",
@@ -114,7 +123,7 @@ const getBalanceContainer = () => document.querySelector("#balance-container");
 const getCorporations = () => document.querySelector("#corporations");
 
 const establishCorporation = data => {
-  fetch("/game/establish", {
+  fetch(`${getGameBaseUrl()}/establish`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
@@ -150,7 +159,7 @@ const disablePlayerTiles = () => {
 };
 
 const setUpTiles = ({ position }) => {
-  fetch("/game/tile", {
+  fetch(`${getGameBaseUrl()}/tile`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -280,9 +289,11 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
   const currentPlayer = players.find(({ isTakingTurn }) => isTakingTurn);
   const isInCorrectState = state === "establish-corporation";
   const corporationsContainer = getCorporations();
+  const corporationSection = document.querySelector("#corporation-section");
 
   if (!(isSamePlayer(self, currentPlayer) && isInCorrectState)) {
     corporationsContainer.classList.remove("selectable");
+    corporationSection.classList.remove("highlight-selection");
     [...document.querySelectorAll(".corporation")].forEach(corp =>
       corp.classList.add("non-selectable")
     );
@@ -290,6 +301,7 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
   }
 
   corporationsContainer.classList.add("selectable");
+  corporationSection.classList.add("highlight-selection");
 
   Object.entries(corporations)
     .filter(([, corp]) => !corp.isActive)
@@ -299,6 +311,7 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
       corp.onclick = () => {
         establishCorporation({ name });
         corporationsContainer.classList.remove("selectable");
+        corporationSection.classList.remove("highlight-selection");
       };
       return corp;
     })
@@ -321,11 +334,12 @@ const notifyGameEnd = () => {
   activityConsole.append(gameEndElement);
 };
 
-const renderGame = () => {
-  fetch("/game/status")
+const renderGame = (forceUpdate = false) => {
+  fetch(`${getGameBaseUrl()}/status`)
     .then(res => res.json())
     .then(gameStatus => {
-      if (previousState === gameStatus.state && gameStatus.state !== "merge")
+      // Skip render only if state unchanged and not forced (for backward compatibility)
+      if (!forceUpdate && previousState === gameStatus.state && gameStatus.state !== "merge")
         return;
 
       if (gameStatus.state === "game-end") {
@@ -337,9 +351,6 @@ const renderGame = () => {
 
       displayPlayerProfile(gameStatus, previousState);
       renderBoard(gameStatus);
-      // renderActivityMessage(gameStatus);
-      // setUpPlayerTilePlacing(gameStatus);
-      // startPurchase(gameStatus, getDisplayPanel());
       renderCorporations(gameStatus);
       previousState = gameStatus.state;
     });
@@ -363,7 +374,10 @@ const renderTilePlaceView = (_, activityConsole) => {
 const renderEstablishCorporationView = ({ corporations }, activityConsole) => {
   activityConsole.innerText = "Select a corporation to establish...";
   const corporationsContainer = getCorporations();
+  const corporationSection = document.querySelector("#corporation-section");
+  
   corporationsContainer.classList.add("selectable");
+  corporationSection.classList.add("highlight-selection");
 
   Object.entries(corporations)
     .filter(([, corp]) => !corp.isActive)
@@ -373,6 +387,7 @@ const renderEstablishCorporationView = ({ corporations }, activityConsole) => {
       corp.onclick = () => {
         establishCorporation({ name });
         corporationsContainer.classList.remove("selectable");
+        corporationSection.classList.remove("highlight-selection");
         [...corporationsContainer.children].forEach(c =>
           c.classList.add("non-selectable")
         );
@@ -454,13 +469,7 @@ const PENDING_CARD_GENERATORS = {
 
   [ACTIVITIES.merge]: ({ acquirer, defunct }) => {
     return createCard("MERGING");
-
-    // return createCard("MERGING", `${acquirer} >> ${defunct}`);
   },
-
-  // [ACTIVITIES.mergeConflict]: equalCorporations => {
-  //   return createCard("MERGING", `${acquirer} = ${defunct}`);
-  // },
 };
 
 const createMergerTieCard = (corporations, label) => {
@@ -595,12 +604,11 @@ const createComponents = gameStatus => {
 
 const setupGame = () => {
   setupInfoCard();
-  const gameGateway = new GameGateway("/game");
+  const gameGateway = new GameGateway(getGameBaseUrl());
 
   return gameGateway.getStatus().then(gameStatus => {
     displayPlayerProfile(gameStatus);
     renderBoard(gameStatus);
-    // displayInitialMessages(gameStatus);
     renderCorporations(gameStatus);
     setupCorporationSelection(gameStatus);
 
@@ -611,19 +619,33 @@ const setupGame = () => {
   });
 };
 
-const keepPlayerProfileUpdated = () => {
-  const interval = 1000;
+const setupSocketListeners = (gameService) => {
+  const lobbyId = getLobbyIdFromUrl();
+  
+  // Join the game room
+  socketClient.emit("joinGameRoom", lobbyId);
+  
+  // Listen for game updates - force update since we know something changed
+  socketClient.on("gameUpdate", () => {
+    renderGame(true);
+    gameService.render();
+  });
+  
+  // Listen for game end
+  socketClient.on("gameEnd", () => {
+    notifyGameEnd();
+  });
+};
 
+const initializeGame = () => {
   setupGame().then(gameService => {
-    setTimeout(() => {
-      setInterval(() => {
-        renderGame();
-        gameService.render();
-      }, interval);
-    }, interval * 1);
+    setupSocketListeners(gameService);
+    renderGame();
+    gameService.render();
+    voiceChat.joinVoiceRoom();
   });
 
   setupHistory();
 };
 
-window.onload = keepPlayerProfileUpdated;
+window.onload = initializeGame;

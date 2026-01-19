@@ -1,64 +1,155 @@
+/* Players Bar */
+
 #players {
-  grid-area: "players";
-  padding: 0 0.5em;
-  flex-grow: 1;
-  background-color: var(--mid-gray);
+  grid-area: players;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-lg);
+  background: linear-gradient(180deg, rgba(20, 30, 45, 0.95) 0%, rgba(15, 23, 35, 0.98) 100%);
+  border-top: 1px solid rgba(100, 120, 150, 0.2);
+  border-bottom: 1px solid rgba(100, 120, 150, 0.2);
+  gap: 1rem;
+  position: relative;
+}
+
+#players::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(100, 150, 200, 0.03) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .player:not([hidden]) {
-  width: fit-content;
-  height: 1.3em;
-  gap: 0.5em;
   display: flex;
-  justify-content: flex-start;
-  padding: 0 1em;
   align-items: center;
-  border-left: 1.5px solid var(--light-gray);
-}
-
-.player:not([hidden]):first-child {
-  border-left: none;
+  gap: var(--space-sm);
+  padding: 0.5rem 1rem;
+  height: auto;
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+  background: transparent;
+  border: 2px solid transparent;
+  position: relative;
 }
 
 .player:not([hidden]) .avatar {
-  height: 40px;
-  aspect-ratio: 1;
-  background-color: #f3f5f6;
+  width: 36px;
+  height: 36px;
+  background: var(--bg-dark);
   border-radius: 50%;
   padding: 2px;
-  box-shadow: 1px 1px 2px #787878;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
 }
 
 .player:not([hidden]) .name {
-  letter-spacing: 0.03em;
-  color: var(--light-gray);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
+  transition: all 0.3s ease;
 }
 
+/* Active Player - Much more prominent */
 .player:not([hidden]).active {
-  height: 100%;
-  border: 0.3em solid var(--mid-gray);
-  background-color: var(--light-gray);
-  border-bottom: none;
-  border-radius: 15px 15px 0 0;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+  border: 2px solid #22c55e;
+  box-shadow: 
+    0 0 20px rgba(34, 197, 94, 0.3),
+    inset 0 0 20px rgba(34, 197, 94, 0.05);
+  animation: activePlayerPulse 2s ease-in-out infinite;
+  position: relative;
 }
 
-.player:not([hidden]).active + .player:not([hidden]) {
-  border: none;
+@keyframes activePlayerPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 15px rgba(34, 197, 94, 0.3),
+      inset 0 0 15px rgba(34, 197, 94, 0.05);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(34, 197, 94, 0.5),
+      inset 0 0 25px rgba(34, 197, 94, 0.1);
+  }
+}
+
+.player:not([hidden]).active::before {
+  content: "▶";
+  position: absolute;
+  left: -1.5rem;
+  font-size: 0.8rem;
+  color: #22c55e;
+  animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
 }
 
 .player:not([hidden]).active .name {
-  color: var(--dark-gray);
+  color: #22c55e;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
 }
 
-.player:not([hidden]).self .name::after {
-  width: fit-content;
+.player:not([hidden]).active .avatar {
+  box-shadow: 
+    0 0 15px rgba(34, 197, 94, 0.6),
+    0 0 30px rgba(34, 197, 94, 0.3);
+  border: 3px solid #22c55e;
+  transform: scale(1.1);
+}
+
+/* Turn indicator badge */
+.player:not([hidden]).active::after {
+  content: "TURN";
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: white;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
+/* Self Indicator */
+.player:not([hidden]).self .name::after {
   content: "You";
-  font-size: 0.6em;
-  background-color: var(--dark-gray);
-  margin: 0.2em;
-  padding: 0.2em 0.5em;
-  border-radius: 10px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.5rem;
+  margin-left: 0.25rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+/* Self + Active combo */
+.player:not([hidden]).active.self .name::after {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+/* Inactive players are slightly dimmed */
+.player:not([hidden]):not(.active) {
+  opacity: 0.7;
+}
+
+.player:not([hidden]):not(.active):hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
 }

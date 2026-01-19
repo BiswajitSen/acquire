@@ -1,16 +1,27 @@
+import { socketClient } from "/scripts/socket-client.js";
+
 const getPlayerSection = () => document.querySelector("#players");
 const getMessageElement = () => document.querySelector("#message");
 const getAnimationSection = () => document.querySelector("#animation");
 const getStartBtn = () => document.querySelector("#start-btn");
 
+const getLobbyIdFromUrl = () => {
+  const pathParts = window.location.pathname.split("/");
+  return pathParts[2];
+};
+
 const getLobbyStatus = () => {
-  return fetch("/lobby/status").then(res => res.json());
+  const lobbyId = getLobbyIdFromUrl();
+  return fetch(`/lobby/${lobbyId}/status`).then(res => res.json());
 };
 
 const renderPlayer = (username, playerElement) => {
   const playerNameElement = playerElement.querySelector(".name");
+  const profilePicture = playerElement.querySelector(".profile-picture");
+  
   playerElement.classList.add("joined");
   playerNameElement.innerText = username;
+  profilePicture.innerText = username.charAt(0).toUpperCase();
 };
 
 const renderPlayers = players => {
@@ -22,7 +33,8 @@ const renderPlayers = players => {
 };
 
 const redirectToGame = () => {
-  window.location.assign("/game");
+  const lobbyId = getLobbyIdFromUrl();
+  window.location.assign(`/game/${lobbyId}`);
 };
 
 const isHost = (host, self) => self.username === host.username;
@@ -41,18 +53,14 @@ const gameHasStarted = ({ isPossibleToStartGame, hasExpired }) => {
   return isPossibleToStartGame && hasExpired;
 };
 
-const updateLobby = () => {
-  getLobbyStatus().then(status => {
-    renderPlayers(status.players);
-    renderStartBtn(status);
-    if (gameHasStarted(status)) redirectToGame();
-  });
+const updateLobbyUI = (status) => {
+  renderPlayers(status.players);
+  renderStartBtn(status);
+  if (gameHasStarted(status)) redirectToGame();
 };
 
-const keepLobbyUpdated = () => {
-  const interval = 1000;
-  updateLobby();
-  setInterval(updateLobby, interval);
+const updateLobby = () => {
+  getLobbyStatus().then(updateLobbyUI);
 };
 
 const animate = () => {
@@ -65,7 +73,8 @@ const animate = () => {
 };
 
 const startGame = () => {
-  return fetch("/game/start", { method: "POST" }).then(res => {
+  const lobbyId = getLobbyIdFromUrl();
+  return fetch(`/game/${lobbyId}/start`, { method: "POST" }).then(res => {
     if (res.status === 200) {
       redirectToGame();
     }
@@ -79,10 +88,23 @@ const setUpStartButton = () => {
   };
 };
 
+const setupSocketListeners = () => {
+  const lobbyId = getLobbyIdFromUrl();
+  
+  // Join the lobby room
+  socketClient.emit("joinLobbyRoom", lobbyId);
+  
+  // Listen for lobby updates - fetch fresh data to get user-specific info
+  socketClient.on("lobbyUpdate", () => {
+    updateLobby();
+  });
+};
+
 const main = () => {
   animate();
-  keepLobbyUpdated();
+  updateLobby();
   setUpStartButton();
+  setupSocketListeners();
 };
 
 window.onload = main;

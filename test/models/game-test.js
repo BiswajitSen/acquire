@@ -1,9 +1,13 @@
 const assert = require("assert");
 const { it, describe } = require("node:test");
 const { reverse } = require("lodash");
-const { Player } = require("../../src/models/player");
-const { Game, loadGame, GAME_STATES } = require("../../src/models/game");
-const { createCorporations } = require("../../src/models/corporation");
+const {
+  Player,
+  Game,
+  loadGame,
+  GAME_STATES,
+  createCorporations,
+} = require("../test-helpers");
 const multipleMerge = require("../test-data/merging-three.json");
 const multipleMergeTwoAcquirer = require("../test-data/merging-three-two-equal-acquirer.json");
 const multipleMergeTwoDefunct = require("../test-data/merging-three-two-equal-defunct.json");
@@ -11,7 +15,6 @@ const multipleMergeThreeAllEqual = require("../test-data/merging-three-all-equal
 const unplayableTile = require("../test-data/unplayable-tile.json");
 
 describe("Game", () => {
-  // TODO: extract constants
   describe("start", () => {
     it("should distribute initial assets to players", () => {
       const player1 = new Player("Biswa");
@@ -252,7 +255,6 @@ describe("Game", () => {
       game.placeTile("Bittu", { x: 0, y: 7 });
       game.placeTile("Bittu", { x: 0, y: 8 });
       game.placeTile("Bittu", { x: 0, y: 9 });
-      // game.placeTile("Bittu", { x: 0, y: 10 });
       game.establishCorporation({ name: "quantum" });
 
       game.placeTile("Biswa", { x: 0, y: 4 });

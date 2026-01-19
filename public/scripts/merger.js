@@ -1,7 +1,7 @@
 import { createCard } from "./game.js";
 
 const endMergerTurn = () => {
-  fetch("/game/merger/end-turn", { method: "POST" });
+  fetch(`${getGameBaseUrl()}/merger/end-turn`, { method: "POST" });
 };
 
 export const renderMerge = (
@@ -31,7 +31,7 @@ class Merger {
   }
 
   #confirmDeal() {
-    fetch("/game/merger/deal", {
+    fetch(`${getGameBaseUrl()}/merger/deal`, {
       method: "POST",
       body: JSON.stringify(this.#cart),
       headers: {
