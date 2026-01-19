@@ -1051,3 +1051,401 @@
   background-repeat: no-repeat;
   background-position: center;
 }
+
+.mobile-panel-toggle {
+  display: none;
+}
+
+.mobile-panel-close {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  #root {
+    grid-template-columns: 12rem 1fr 12rem;
+  }
+  
+  .corporation .icon {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+  
+  .corporation .details .stat {
+    min-width: 2.2rem;
+  }
+  
+  .stock {
+    width: 90px;
+    height: 60px;
+  }
+  
+  .tile {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (max-width: 768px) {
+  #root {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto auto auto;
+    grid-template-areas:
+      "game-header"
+      "game-board-container"
+      "activity-bar"
+      "players"
+      "mobile-panels";
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  
+  #game-header {
+    padding: var(--space-sm);
+  }
+  
+  #game-title {
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+  }
+  
+  #corporation-section,
+  #portfolio-section {
+    display: none;
+  }
+  
+  #corporation-section.mobile-visible,
+  #portfolio-section.mobile-visible {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background: var(--bg-darker);
+    overflow-y: auto;
+    padding-bottom: 5rem;
+  }
+  
+  #game-board-container {
+    padding: var(--space-sm);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  #game-board {
+    gap: 3px;
+    padding: var(--space-sm);
+    min-width: 360px;
+    min-height: 270px;
+    height: auto;
+    max-height: none;
+  }
+  
+  .space {
+    font-size: 0.6rem;
+    min-width: 28px;
+    min-height: 28px;
+  }
+  
+  .space span:first-child {
+    font-size: 0.65rem;
+  }
+  
+  .space span:last-child {
+    font-size: 0.5rem;
+  }
+  
+  #display-panel {
+    grid-template-columns: 1fr;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  
+  #display-panel button {
+    padding: var(--space-sm);
+    font-size: 0.75rem;
+    min-height: 44px;
+  }
+  
+  .buying-prompt,
+  .refill-tile-prompt {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+  }
+  
+  .selected-stocks {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .selected-stocks .stock {
+    width: 70px;
+    height: 50px;
+  }
+  
+  .price-display {
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .total-price {
+    font-size: 1.1rem;
+  }
+  
+  #players-bar {
+    grid-area: players;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .mobile-panel-toggle {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-darker);
+    border-top: 1px solid var(--border-color);
+    z-index: 50;
+    padding: var(--space-xs);
+    gap: var(--space-xs);
+  }
+  
+  .mobile-panel-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--space-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-height: 50px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+  
+  .mobile-panel-btn:active {
+    background: var(--bg-card-hover);
+    transform: scale(0.98);
+  }
+  
+  .mobile-panel-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+  
+  .mobile-panel-close {
+    position: fixed;
+    top: var(--space-md);
+    right: var(--space-md);
+    width: 44px;
+    height: 44px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    z-index: 101;
+  }
+  
+  .tile {
+    width: 44px;
+    height: 44px;
+    font-size: 0.7rem;
+  }
+  
+  .stock {
+    width: 80px;
+    height: 55px;
+  }
+  
+  #voice-controls {
+    position: fixed;
+    bottom: 60px;
+    right: var(--space-sm);
+    z-index: 49;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xs);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  #voice-toggle {
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .voice-label {
+    display: none;
+  }
+  
+  .result-wrapper {
+    max-width: 95vw;
+    padding: var(--space-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .result-wrapper h1 {
+    font-size: 1.2rem;
+  }
+  
+  .ranks .headers,
+  .line {
+    grid-template-columns: 2rem 1fr 1fr;
+    font-size: 0.8rem;
+  }
+  
+  .deal-options {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  #game-board {
+    gap: 2px;
+    padding: var(--space-xs);
+    min-width: 300px;
+  }
+  
+  .space {
+    font-size: 0.5rem;
+    min-width: 24px;
+    min-height: 24px;
+    border-radius: 4px;
+  }
+  
+  .space span:first-child {
+    font-size: 0.55rem;
+  }
+  
+  .space span:last-child {
+    display: none;
+  }
+  
+  .tile {
+    width: 40px;
+    height: 40px;
+    font-size: 0.65rem;
+  }
+  
+  .stock {
+    width: 65px;
+    height: 45px;
+  }
+  
+  .selected-stocks .stock {
+    width: 55px;
+    height: 40px;
+  }
+  
+  #display-panel button {
+    font-size: 0.7rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+  
+  .corporation .name {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .corporation .icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .corporation .details .stat-label {
+    font-size: 0.5rem;
+  }
+  
+  .corporation .details .stocks,
+  .corporation .details .size,
+  .corporation .details .price {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  #root {
+    grid-template-columns: 10rem 1fr 10rem;
+    grid-template-rows: 2.5rem 1fr 2.5rem;
+    grid-template-areas:
+      "game-header game-header game-header"
+      "corporation game-board-container account"
+      "corporation activity-bar account";
+  }
+  
+  #game-header {
+    height: 2.5rem;
+  }
+  
+  #game-title {
+    font-size: 1rem;
+  }
+  
+  #corporation-section,
+  #portfolio-section {
+    display: flex;
+  }
+  
+  .mobile-panel-toggle {
+    display: none;
+  }
+  
+  #corporations,
+  #portfolio {
+    padding: var(--space-xs);
+    gap: var(--space-xs);
+  }
+  
+  .corporation {
+    padding: 0;
+  }
+  
+  .corporation .name {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+  
+  .corporation .info {
+    padding: 0.2rem;
+  }
+  
+  .corporation .icon {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+  
+  #display-panel {
+    max-height: 2.5rem;
+    padding: 0 var(--space-sm);
+  }
+  
+  #game-board {
+    gap: 2px;
+    padding: var(--space-xs);
+  }
+  
+  .space {
+    font-size: 0.55rem;
+  }
+}

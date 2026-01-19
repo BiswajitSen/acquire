@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Acquire</title>
     <script type="module">
       import { minidenticonSvg } from "https://cdn.jsdelivr.net/npm/minidenticons@4.2.0/minidenticons.min.js";
@@ -334,6 +336,47 @@
         <div id="info-close-btn">×</div>
         <img src="/images/cards/info-card.svg" alt="info-card" />
       </div>
+      
+      <nav class="mobile-panel-toggle">
+        <button class="mobile-panel-btn" data-panel="corporation">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+          </svg>
+          Corps
+        </button>
+        <button class="mobile-panel-btn" data-panel="portfolio">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+          </svg>
+          Portfolio
+        </button>
+      </nav>
     </div>
+    
+    <script>
+      document.querySelectorAll('.mobile-panel-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panel = btn.dataset.panel;
+          const section = document.getElementById(panel + '-section');
+          const isVisible = section.classList.contains('mobile-visible');
+          
+          document.querySelectorAll('#corporation-section, #portfolio-section').forEach(s => {
+            s.classList.remove('mobile-visible');
+          });
+          
+          if (!isVisible) {
+            section.classList.add('mobile-visible');
+            
+            if (!section.querySelector('.mobile-panel-close')) {
+              const closeBtn = document.createElement('button');
+              closeBtn.className = 'mobile-panel-close';
+              closeBtn.innerHTML = '×';
+              closeBtn.onclick = () => section.classList.remove('mobile-visible');
+              section.appendChild(closeBtn);
+            }
+          }
+        });
+      });
+    </script>
   </body>
 </html>
