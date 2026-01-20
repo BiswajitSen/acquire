@@ -18,7 +18,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default server URL
-DEFAULT_SERVER="http://localhost:3000"
+DEFAULT_SERVER="http://localhost:8080"
 
 # Parse arguments
 LOBBY_ID="$1"
@@ -127,12 +127,25 @@ elif [ "$HTTP_CODE" = "400" ]; then
     exit 1
 elif [ "$HTTP_CODE" = "404" ]; then
     echo -e "  ${RED}✗ Lobby not found${NC}"
-    echo "  Make sure the lobby exists: $LOBBY_ID"
+    echo "  The lobby '$LOBBY_ID' does not exist."
     echo ""
-    echo -e "${YELLOW}Tip:${NC} Create a lobby first by:"
-    echo "  1. Going to $SERVER_URL"
-    echo "  2. Creating a new lobby"
-    echo "  3. Using that lobby's ID"
+    echo -e "${YELLOW}To load a game, you need to:${NC}"
+    echo ""
+    echo "  1. Create a lobby first:"
+    echo "     - Go to $SERVER_URL"
+    echo "     - Enter a username (must match a player in your save file)"
+    echo "     - Click 'Create Lobby'"
+    echo "     - Copy the lobby ID from the URL"
+    echo ""
+    echo "  2. Then run this script with that lobby ID:"
+    echo "     $0 <new-lobby-id> $DATA_FILE $SERVER_URL"
+    echo ""
+    echo -e "${YELLOW}Players in your save file:${NC}"
+    jq -r '.players[].username' "$DATA_FILE" 2>/dev/null | while read player; do
+        echo "     - $player"
+    done
+    echo ""
+    echo -e "${YELLOW}Tip:${NC} Your browser username cookie must match one of these players!"
     exit 1
 else
     echo -e "  ${RED}✗ Request failed${NC}"

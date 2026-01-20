@@ -142,13 +142,25 @@ const verifyHost = (req, res, next) => {
  * Load a saved game state
  * POST /game/:lobbyId/load
  * Body: Complete game state JSON
+ * 
+ * Note: Lobby must exist first. Create one via the web UI or API.
  */
 const loadGameState = (req, res) => {
   const gameData = req.body;
   const { lobbyId, lobby } = req;
   const { lobbyManager } = req.app.context;
   
+  if (!gameData || !gameData.players || !gameData.corporations) {
+    return res.status(400).json({ 
+      error: "Invalid game state. Required: players, corporations, placedTiles" 
+    });
+  }
+  
   try {
+    console.log(`[GameLoader] Loading game state for lobby ${lobbyId}`);
+    console.log(`[GameLoader] Players: ${gameData.players.map(p => p.username).join(', ')}`);
+    console.log(`[GameLoader] State: ${gameData.state || 'place-tile'}`);
+    
     const game = loadGame(gameData);
     lobbyManager.setGame(lobbyId, game);
     
@@ -163,10 +175,16 @@ const loadGameState = (req, res) => {
       socketBroadcaster.broadcastGameUpdate(lobbyId);
     }
     
-    res.status(201).json({ success: true, message: "Game state loaded" });
+    console.log(`[GameLoader] ✅ Game state loaded successfully`);
+    res.status(201).json({ 
+      success: true, 
+      message: "Game state loaded",
+      gameUrl: `/game/${lobbyId}`,
+      players: gameData.players.map(p => p.username),
+    });
   } catch (error) {
     console.error("[GameLoader] Failed to load game:", error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error.message, stack: error.stack });
   }
 };
 
