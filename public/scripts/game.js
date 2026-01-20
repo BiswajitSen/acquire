@@ -580,48 +580,33 @@ const createCorpIcon = corp => {
 };
 
 const createDealIcon = (type, quantity) => {
+  const emoji = type === "sell" ? "💰" : "🔄";
   return [
     "div",
     [
-      ["div", "", { class: `${type}-icon` }],
+      ["div", emoji, { class: `${type}-icon` }],
       ["div", quantity],
     ],
     { class: `${type}-defunct-box` },
   ];
 };
 
-const createBonusTable = ({ majority, minority }) => {
-  // Wrap bonus table in a card for consistent styling
+const createBonusTile = (type, amount, players) => {
+  const playerNames = players.length > 0 ? players.join(", ") : "-";
   return createCard(
-    "bonuses",
+    type,
     [
-      [
-        "div",
-        [
-          [
-            "div",
-            [
-              ["span", "👑", { class: "bonus-icon" }],
-              ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
-              ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
-            ],
-            { class: "merge-bonus-column majority" },
-          ],
-          [
-            "div",
-            [
-              ["span", "🥈", { class: "bonus-icon" }],
-              ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
-              ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
-            ],
-            { class: "merge-bonus-column minority" },
-          ],
-        ],
-        { class: "merge-bonus-table" },
-      ],
+      ["div", `$${amount.toLocaleString()}`, { class: "bonus-amount" }],
+      ["div", playerNames, { class: "bonus-players" }],
     ],
-    "done extra-width-card"
+    `done bonus-tile ${type}`
   );
+};
+
+const createBonusTiles = ({ majority, minority }) => {
+  const majorityTile = createBonusTile("majority", majority.bonus, majority.players);
+  const minorityTile = createBonusTile("minority", minority.bonus, minority.players);
+  return [majorityTile, minorityTile];
 };
 
 const PENDING_CARD_GENERATORS = {
@@ -698,7 +683,7 @@ const CARD_GENERATORS = {
       ],
       "done"
     );
-    const bonusesCard = createBonusTable({ majority, minority });
+    const [majorityTile, minorityTile] = createBonusTiles({ majority, minority });
     const turnCards = turns.map(({ player, sell, trade }) =>
       createCard(
         `${player}'s deal`,
@@ -707,7 +692,7 @@ const CARD_GENERATORS = {
       )
     );
 
-    mergeDiv.append(mergingCard, bonusesCard, ...turnCards);
+    mergeDiv.append(mergingCard, majorityTile, minorityTile, ...turnCards);
     return mergeDiv;
   },
 

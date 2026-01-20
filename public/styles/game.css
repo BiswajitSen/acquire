@@ -15,6 +15,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: var(--space-md);
 }
 #game-header {
   grid-area: game-header;
@@ -1029,13 +1030,14 @@
   padding: 2.5rem;
   max-width: 900px;
   width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: 
     0 25px 80px rgba(0, 0, 0, 0.5),
     0 0 60px rgba(251, 191, 36, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   animation: slideUp 0.5s ease-out;
-  overflow: hidden;
 }
 
 .result-wrapper::before {
@@ -1125,9 +1127,32 @@
   color: #34d399;
   font-family: "JetBrains Mono", monospace;
 }
-.game-over {
+.result-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  align-items: stretch;
+}
+
+.result-section,
+.bonus-wrapper {
+  display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+}
+
+.bonus-wrapper {
+  gap: 1rem;
+}
+
+.result-section .ranks {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .result-content {
+    grid-template-columns: 1fr;
+  }
 }
 
 .result-section {
@@ -1237,9 +1262,14 @@
 }
 
 .bonus-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+  flex: 1;
+}
+
+.bonus-section .bonus-card {
+  flex: 1;
 }
 
 .bonus-card {
@@ -1248,6 +1278,8 @@
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .bonus-card:hover {
@@ -1265,66 +1297,57 @@
 
 .bonus-card-body {
   padding: 0.75rem;
-}
-
-/* Merge bonus table (during gameplay) */
-.merge-bonus-table {
-  display: flex;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.merge-bonus-column {
   flex: 1;
-  text-align: center;
-  padding: 0.4rem 0.5rem;
-  border-radius: 6px;
+  display: flex;
 }
 
-.merge-bonus-column.majority {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
-  border: 1px solid rgba(251, 191, 36, 0.25);
+/* Merge bonus tiles (during gameplay) */
+
+.card.bonus-tile {
+  min-width: 8.5rem;
+  width: 8.5rem;
 }
 
-.merge-bonus-column.minority {
-  background: linear-gradient(135deg, rgba(156, 163, 175, 0.1) 0%, rgba(156, 163, 175, 0.03) 100%);
-  border: 1px solid rgba(156, 163, 175, 0.15);
+.card.bonus-tile.majority .label {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.1) 100%);
+  color: #fbbf24;
 }
 
-.merge-bonus-column .bonus-icon {
-  font-size: 1rem;
-  display: block;
-  margin-bottom: 0.15rem;
+.card.bonus-tile.minority .label {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.08) 100%);
+  color: #9ca3af;
 }
 
-.merge-bonus-column .bonus-amount {
+.bonus-tile .body {
+  flex-direction: column !important;
+  gap: 0.2rem;
+  height: auto !important;
+  min-height: 4.5rem;
+  padding: var(--space-sm) !important;
+}
+
+.bonus-tile .bonus-amount {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #34d399;
-  margin: 0;
 }
 
-.merge-bonus-column .player-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem;
-  justify-content: center;
-  margin-top: 0.25rem;
-}
-
-.merge-bonus-column .player-tag {
-  font-size: 0.55rem;
-  padding: 0.1rem 0.3rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  color: #e2e8f0;
+.bonus-players {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Game Over bonus table */
 .bonus-table {
   display: flex;
   gap: 0.75rem;
+  flex: 1;
 }
 
 .bonus-column {
@@ -1392,12 +1415,14 @@
 }
 
 .deal-options .card {
+  min-width: 10rem;
   width: auto;
-  overflow: visible;
 }
 
 .deal-options .card .body {
-  overflow: visible;
+  padding: var(--space-md);
+  height: auto;
+  min-height: 4.5rem;
 }
 
 .sell-box {
@@ -1431,29 +1456,31 @@
   border-color: #60a5fa !important;
   transform: scale(1.05);
 }
-.player-deal {
-  transform: scale(0.9);
+.card.player-deal {
+  min-width: 8.5rem;
+  width: 8.5rem;
 }
 .player-deal .body {
   display: flex !important;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 .sell-defunct-box,
 .trade-defunct-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 0.2rem;
 }
 .sell-icon,
 .trade-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  background-size: contain;
-  background-repeat: no-repeat;
+  font-size: 1.2rem;
 }
-.sell-icon { background-image: url(/images/sell-icon.png); }
-.trade-icon { background-image: url(/images/trade-icon.jpg); }
+.sell-defunct-box > div:last-child,
+.trade-defunct-box > div:last-child {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
 .flash {
   animation: flash 0.5s ease;
 }

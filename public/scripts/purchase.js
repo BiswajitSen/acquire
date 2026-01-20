@@ -12,7 +12,6 @@ const createBonusTable = (majority, minority) => {
       [
         "div",
         [
-          ["span", "👑", { class: "bonus-icon" }],
           ["h5", "Majority"],
           ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
           ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
@@ -22,7 +21,6 @@ const createBonusTable = (majority, minority) => {
       [
         "div",
         [
-          ["span", "🥈", { class: "bonus-icon" }],
           ["h5", "Minority"],
           ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
           ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
@@ -115,27 +113,60 @@ const renderGameResult = ({ players, bonuses }) => {
   const playerRanks = rankPlayers(players);
   const winner = playerRanks[0];
   
+  const closeBtn = generateComponent([
+    "div",
+    "×",
+    { class: "bonus-close-btn" },
+  ]);
+
   const resultWrapper = generateComponent([
     "div",
-    [
-      ["div", [
-        ["div", "🎉", { class: "celebration-emoji left" }],
-        ["h1", "Game Over"],
-        ["div", "🎉", { class: "celebration-emoji right" }],
-      ], { class: "result-title" }],
-      ["div", [
-        ["p", "Winner", { class: "winner-label" }],
-        ["h2", winner.name, { class: "winner-name" }],
-        ["p", `$${winner.balance.toLocaleString()}`, { class: "winner-balance" }],
-      ], { class: "winner-highlight" }],
-    ],
-    { class: "flex result-wrapper" },
+    "",
+    { class: "result-wrapper" },
   ]);
-  
-  const resultSection = generateComponent([
+
+  // Title
+  const resultTitle = generateComponent([
+    "div",
+    [
+      ["div", "🎉", { class: "celebration-emoji" }],
+      ["h1", "Game Over"],
+      ["div", "🎉", { class: "celebration-emoji" }],
+    ],
+    { class: "result-title" },
+  ]);
+
+  // Winner highlight
+  const winnerSection = generateComponent([
+    "div",
+    [
+      ["p", "Winner", { class: "winner-label" }],
+      ["h2", winner.name, { class: "winner-name" }],
+      ["p", `$${winner.balance.toLocaleString()}`, { class: "winner-balance" }],
+    ],
+    { class: "winner-highlight" },
+  ]);
+
+  // Main content area with two columns
+  const contentArea = generateComponent([
+    "div",
+    "",
+    { class: "result-content" },
+  ]);
+
+  // Left column - Rankings
+  const rankSection = generateComponent([
     "div",
     "",
     { class: "result-section" },
+  ]);
+  rankSection.append(generateRankTable(playerRanks));
+
+  // Right column - Bonuses
+  const bonusWrapper = generateComponent([
+    "div",
+    "",
+    { class: "bonus-wrapper" },
   ]);
   
   const bonusSectionTitle = generateComponent([
@@ -153,19 +184,15 @@ const renderGameResult = ({ players, bonuses }) => {
     { class: "bonus-section" },
   ]);
   
-  const closeBtn = generateComponent([
-    "div",
-    "×",
-    { class: "bonus-close-btn" },
-  ]);
-
   const bonusCards = bonuses.map(createBonusCard);
-  const resultPage = generateComponent(["div", "", { class: "result-page" }]);
-  resultSection.append(generateRankTable(playerRanks));
   bonusSection.append(...bonusCards);
+  bonusWrapper.append(bonusSectionTitle, bonusSection);
 
+  contentArea.append(rankSection, bonusWrapper);
+  resultWrapper.append(closeBtn, resultTitle, winnerSection, contentArea);
+  
+  const resultPage = generateComponent(["div", "", { class: "result-page" }]);
   closeBtn.onclick = () => resultPage.remove();
-  resultWrapper.append(closeBtn, resultSection, bonusSectionTitle, bonusSection);
   resultPage.append(resultWrapper);
   document.body.append(resultPage);
 };
