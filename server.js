@@ -26,9 +26,10 @@ const SOCKET_OPTIONS = {
   pingInterval: 25000,
   maxHttpBufferSize: 1e6,
   cors: {
-    origin: process.env.NODE_ENV === "production" ? false : "*",
+    origin: true,
     credentials: true
-  }
+  },
+  transports: ["websocket", "polling"]
 };
 
 const main = () => {
