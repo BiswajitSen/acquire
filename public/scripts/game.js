@@ -9,7 +9,7 @@ import DisplayPanel from "/scripts/components/display-panel.js";
 import { selectAcquirer } from "/scripts/multiple-acquirer.js";
 import { selectDefunct } from "/scripts/multiple-defunct.js";
 import { socketClient, EVENTS } from "/scripts/socket-client.js";
-import { voiceChat } from "/scripts/voice-chat.js";
+import { voiceRoom } from "/scripts/voice-room.js";
 
 let previousState;
 
@@ -769,31 +769,22 @@ const setupSocketListeners = (gameService) => {
   });
 };
 
-const setupMobileMicButton = () => {
-  const mobileMicBtn = document.getElementById('mobile-voice-toggle');
-  const mainVoiceToggle = document.getElementById('voice-toggle');
-  
-  if (mobileMicBtn) {
-    mobileMicBtn.addEventListener('click', () => {
-      voiceChat.toggleMic();
-    });
-    
-    if (mainVoiceToggle) {
-      const observer = new MutationObserver(() => {
-        mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
-      });
-      observer.observe(mainVoiceToggle, { attributes: true, attributeFilter: ['class'] });
-    }
-  }
-};
+// Mobile mic button is now handled by voiceRoom.bindUI()
 
 const initializeGame = () => {
   setupGame().then(gameService => {
     setupSocketListeners(gameService);
     renderGame();
     gameService.render();
-    voiceChat.joinVoiceRoom();
-    setupMobileMicButton();
+    
+    // Join voice room with the game/lobby ID
+    const lobbyId = getLobbyIdFromUrl();
+    voiceRoom.join(lobbyId).catch(err => {
+      console.error("Failed to join voice room:", err);
+    });
+    
+    // Bind UI elements for mic button (handles both desktop and mobile)
+    voiceRoom.bindUI("voice-toggle", ".voice-status");
   });
 
   setupHistory();

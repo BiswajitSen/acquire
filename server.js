@@ -8,6 +8,7 @@ const { createGameRouter } = require("./src/routers/game-router");
 const { createLobbyRouter } = require("./src/routers/lobby-router");
 const { createLobbiesRouter } = require("./src/routers/lobbies-router");
 const { setupSocketServer } = require("./src/socket-handler");
+const { setupVoice } = require("./src/voice-handler");
 
 const PORT = process.env.PORT || 8080;
 
@@ -47,6 +48,9 @@ const main = () => {
   const io = new Server(httpServer, SOCKET_OPTIONS);
 
   const socketBroadcaster = setupSocketServer(io, lobbyManager);
+  
+  // Set up voice chat signaling
+  setupVoice(io);
 
   app.set("socketBroadcaster", socketBroadcaster);
 
