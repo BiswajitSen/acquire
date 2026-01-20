@@ -1267,6 +1267,69 @@
   padding: 0.75rem;
 }
 
+/* Merge bonus table (during gameplay) */
+.merge-bonus-table {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem;
+}
+
+.merge-bonus-column {
+  flex: 1;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  min-width: 100px;
+}
+
+.merge-bonus-column.majority {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.05) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.merge-bonus-column.minority {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.05) 100%);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.merge-bonus-column .bonus-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.merge-bonus-column h5 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin: 0 0 0.25rem 0;
+}
+
+.merge-bonus-column .bonus-amount {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #34d399;
+  margin: 0 0 0.5rem 0;
+}
+
+.merge-bonus-column .player-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.merge-bonus-column .player-tag {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #e2e8f0;
+}
+
+/* Game Over bonus table */
 .bonus-table {
   display: flex;
   gap: 0.75rem;

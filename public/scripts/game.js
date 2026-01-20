@@ -582,21 +582,25 @@ const createBonusTable = ({ majority, minority }) => {
       [
         "div",
         [
+          ["span", "👑", { class: "bonus-icon" }],
           ["h5", "Majority"],
-          ["h5", `$${majority.bonus}`],
-          ...majority.players.map(name => ["p", name]),
+          ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+          ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
         ],
+        { class: "merge-bonus-column majority" },
       ],
       [
         "div",
         [
+          ["span", "🥈", { class: "bonus-icon" }],
           ["h5", "Minority"],
-          ["h5", `$${minority.bonus}`],
-          ...minority.players.map(name => ["p", name]),
+          ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+          ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
         ],
+        { class: "merge-bonus-column minority" },
       ],
     ],
-    { class: "flex bonus-table" },
+    { class: "merge-bonus-table" },
   ]);
 
   return bonusTable;
