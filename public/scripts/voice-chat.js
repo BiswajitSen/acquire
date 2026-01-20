@@ -39,16 +39,24 @@ class VoiceChat {
       try {
         const pc = this.#getOrCreatePeerConnection(from);
         
-        // Handle offer collision - if we're in stable state or have local offer
-        if (pc.signalingState !== "stable") {
-          console.log("Signaling state not stable, rolling back");
-          await Promise.all([
-            pc.setLocalDescription({ type: "rollback" }),
-            pc.setRemoteDescription(new RTCSessionDescription(offer))
-          ]);
-        } else {
-          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        // "Polite peer" pattern - handle offer collision
+        const offerCollision = pc.signalingState !== "stable";
+        
+        // We're "polite" if our ID is smaller (we yield to larger IDs)
+        const isPolite = !this.#mySocketId || this.#mySocketId < from;
+        
+        if (offerCollision) {
+          if (!isPolite) {
+            // We're impolite - ignore their offer, they'll accept our answer
+            console.log("Ignoring offer - we're impolite and have pending offer");
+            return;
+          }
+          // We're polite - rollback our offer and accept theirs
+          console.log("Rolling back our offer - we're polite");
+          await pc.setLocalDescription({ type: "rollback" });
         }
+        
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
         
         // Flush any pending ICE candidates
         await this.#flushPendingCandidates(from);
@@ -239,16 +247,15 @@ class VoiceChat {
 
     pc.onnegotiationneeded = async () => {
       console.log("Negotiation needed for:", peerId);
-      if (this.#shouldInitiate(peerId)) {
-        try {
-          const offer = await pc.createOffer();
-          if (pc.signalingState === "stable") {
-            await pc.setLocalDescription(offer);
-            socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
-          }
-        } catch (err) {
-          console.error("Error during negotiation:", err);
+      // Always renegotiate when tracks change (no tie-breaker here)
+      try {
+        const offer = await pc.createOffer();
+        if (pc.signalingState === "stable") {
+          await pc.setLocalDescription(offer);
+          socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
         }
+      } catch (err) {
+        console.error("Error during negotiation:", err);
       }
     };
 
