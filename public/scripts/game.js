@@ -411,10 +411,12 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
   const isInCorrectState = state === "establish-corporation";
   const corporationsContainer = getCorporations();
   const corporationSection = document.querySelector("#corporation-section");
+  const mobileCorpBtn = document.querySelector('[data-panel="corporation"]');
 
   if (!(isSamePlayer(self, currentPlayer) && isInCorrectState)) {
     corporationsContainer.classList.remove("selectable");
     corporationSection.classList.remove("highlight-selection");
+    if (mobileCorpBtn) mobileCorpBtn.classList.remove("attention-needed");
     [...document.querySelectorAll(".corporation")].forEach(corp =>
       corp.classList.add("non-selectable")
     );
@@ -423,6 +425,7 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
 
   corporationsContainer.classList.add("selectable");
   corporationSection.classList.add("highlight-selection");
+  if (mobileCorpBtn) mobileCorpBtn.classList.add("attention-needed");
 
   Object.entries(corporations)
     .filter(([, corp]) => !corp.isActive)
@@ -433,6 +436,7 @@ const setupCorporationSelection = ({ players, corporations, state }) => {
         establishCorporation({ name });
         corporationsContainer.classList.remove("selectable");
         corporationSection.classList.remove("highlight-selection");
+        if (mobileCorpBtn) mobileCorpBtn.classList.remove("attention-needed");
       };
       return corp;
     })
