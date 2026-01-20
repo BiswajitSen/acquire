@@ -1,35 +1,5 @@
-/**
- * VoiceRoom - Client-side voice communication for multiplayer games
- * 
- * This module provides real-time voice chat between players in the same game.
- * It uses WebRTC for peer-to-peer audio streaming and Socket.IO for signaling.
- * 
- * Key Features:
- * - Auto-joins voice room when game starts
- * - Mesh topology: each player connects directly to every other player
- * - Works on Android, iOS, Windows, macOS
- * - Handles browser audio policies automatically
- * 
- * Usage:
- *   import { voiceRoom } from './voice-room.js';
- *   
- *   // When game starts
- *   await voiceRoom.join(gameId);
- *   
- *   // Toggle microphone
- *   await voiceRoom.toggleMic();
- *   
- *   // When game ends
- *   voiceRoom.leave();
- */
-
 import { io } from "https://cdn.socket.io/4.7.2/socket.io.esm.min.js";
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-// Voice events matching server-side events
 const EVENTS = {
   JOIN: "voice:join",
   LEAVE: "voice:leave",
@@ -42,13 +12,10 @@ const EVENTS = {
   ERROR: "voice:error"
 };
 
-// WebRTC configuration with STUN/TURN servers for NAT traversal
 const RTC_CONFIG = {
   iceServers: [
-    // Google's free STUN servers
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
-    // Free TURN servers (for when STUN doesn't work)
     {
       urls: "turn:openrelay.metered.ca:80",
       username: "openrelayproject",
@@ -62,7 +29,6 @@ const RTC_CONFIG = {
   ]
 };
 
-// Audio constraints for getUserMedia
 const AUDIO_CONSTRAINTS = {
   audio: {
     echoCancellation: true,
@@ -72,52 +38,31 @@ const AUDIO_CONSTRAINTS = {
   video: false
 };
 
-// ============================================================================
-// VOICE ROOM CLASS
-// ============================================================================
-
 class VoiceRoom {
   constructor() {
-    // Socket.IO connection
     this.socket = null;
     this.socketId = null;
     
-    // Current room state
     this.roomId = null;
     this.isJoined = false;
     
-    // Local audio
     this.localStream = null;
     this.isMicOn = false;
     
-    // Peer connections: Map<peerId, RTCPeerConnection>
     this.peers = new Map();
     
-    // Audio elements: Map<peerId, HTMLAudioElement>
     this.audioElements = new Map();
     
-    // Buffered ICE candidates (received before connection ready)
     this.pendingCandidates = new Map();
     
-    // Audio unlock state (for mobile browsers)
     this.audioUnlocked = false;
     
-    // UI elements
     this.micButton = null;
     this.statusElement = null;
     
-    // Set up audio unlock listener
     this.setupAudioUnlock();
   }
 
-  // ==========================================================================
-  // PUBLIC API
-  // ==========================================================================
-
-  /**
-   * Join a voice room (call when game starts)
-   * @param {string} roomId - The game/lobby ID
-   */
   async join(roomId) {
     if (this.isJoined) {
       console.log("[Voice] Already in a room, leaving first...");
@@ -126,10 +71,8 @@ class VoiceRoom {
 
     this.roomId = roomId;
     
-    // Connect to voice server
     await this.connectSocket();
     
-    // Join the room
     return new Promise((resolve, reject) => {
       this.socket.emit(EVENTS.JOIN, { roomId }, (response) => {
         if (response?.success) {
@@ -145,16 +88,11 @@ class VoiceRoom {
     });
   }
 
-  /**
-   * Leave the voice room (call when game ends)
-   */
   leave() {
     console.log("[Voice] Leaving room...");
     
-    // Stop microphone
     this.stopMic();
     
-    // Close all peer connections
     this.peers.forEach((pc, peerId) => {
       this.closePeer(peerId);
     });
@@ -162,12 +100,10 @@ class VoiceRoom {
     this.audioElements.clear();
     this.pendingCandidates.clear();
     
-    // Leave room on server
     if (this.socket?.connected) {
       this.socket.emit(EVENTS.LEAVE);
     }
     
-    // Disconnect socket
     this.socket?.disconnect();
     this.socket = null;
     
@@ -178,9 +114,6 @@ class VoiceRoom {
     console.log("[Voice] Left room");
   }
 
-  /**
-   * Toggle microphone on/off
-   */
   async toggleMic() {
     if (this.isMicOn) {
       this.stopMic();
@@ -190,23 +123,56 @@ class VoiceRoom {
     return this.isMicOn;
   }
 
-  /**
-   * Start the microphone
-   */
   async startMic() {
     try {
-      // Check requirements
       if (!this.checkRequirements()) {
         return false;
       }
 
       console.log("[Voice] Starting microphone...");
       
-      // Get microphone access
-      this.localStream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
-      console.log("[Voice] Got local stream");
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => track.stop());
+        this.localStream = null;
+      }
       
-      // Add audio track to all existing peer connections
+      let stream = null;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (!stream && attempts < maxAttempts) {
+        attempts++;
+        try {
+          console.log(`[Voice] Requesting microphone (attempt ${attempts}/${maxAttempts})...`);
+          stream = await navigator.mediaDevices.getUserMedia(AUDIO_CONSTRAINTS);
+        } catch (err) {
+          console.warn(`[Voice] Mic attempt ${attempts} failed:`, err.name);
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } else {
+            throw err;
+          }
+        }
+      }
+      
+      this.localStream = stream;
+      
+      const audioTracks = this.localStream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        throw new Error("No audio tracks received from microphone");
+      }
+      
+      console.log("[Voice] Got local stream with tracks:", audioTracks.map(t => t.label));
+      
+      audioTracks.forEach(track => {
+        console.log(`[Voice] Track: ${track.label}, enabled: ${track.enabled}, muted: ${track.muted}, readyState: ${track.readyState}`);
+        
+        track.onended = () => console.log("[Voice] Local track ended");
+        track.onmute = () => console.log("[Voice] Local track muted");
+        track.onunmute = () => console.log("[Voice] Local track unmuted");
+      });
+      
+      console.log(`[Voice] Adding tracks to ${this.peers.size} peer(s)...`);
       this.peers.forEach((pc, peerId) => {
         this.addLocalTracksToPeer(pc, peerId);
       });
@@ -214,19 +180,16 @@ class VoiceRoom {
       this.isMicOn = true;
       this.updateUI();
       
-      console.log("[Voice] Microphone started");
+      console.log("[Voice] ✅ Microphone started successfully");
       return true;
       
     } catch (error) {
-      console.error("[Voice] Failed to start microphone:", error);
+      console.error("[Voice] ❌ Failed to start microphone:", error);
       this.handleMicError(error);
       return false;
     }
   }
 
-  /**
-   * Stop the microphone
-   */
   stopMic() {
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => {
@@ -235,13 +198,26 @@ class VoiceRoom {
       this.localStream = null;
     }
     
-    // Remove tracks from peer connections
     this.peers.forEach((pc) => {
       pc.getSenders().forEach(sender => {
-        if (sender.track) {
-          pc.removeTrack(sender);
+        if (sender.track?.kind === "audio") {
+          sender.replaceTrack(null).catch(err => {
+            console.warn("[Voice] Failed to stop offering track:", err);
+          });
         }
       });
+      
+      if (typeof pc.getTransceivers === "function") {
+        pc.getTransceivers().forEach(transceiver => {
+          if (transceiver.receiver?.track?.kind === "audio") {
+            try {
+              transceiver.direction = "recvonly";
+            } catch (err) {
+              console.warn("[Voice] Failed to set recvonly:", err);
+            }
+          }
+        });
+      }
     });
     
     this.isMicOn = false;
@@ -250,9 +226,6 @@ class VoiceRoom {
     console.log("[Voice] Microphone stopped");
   }
 
-  /**
-   * Bind UI elements for mic button
-   */
   bindUI(micButtonId, statusElementSelector) {
     this.micButton = document.getElementById(micButtonId);
     this.statusElement = document.querySelector(statusElementSelector);
@@ -267,22 +240,13 @@ class VoiceRoom {
     }
   }
 
-  // ==========================================================================
-  // SOCKET CONNECTION
-  // ==========================================================================
-
-  /**
-   * Connect to the voice signaling server
-   */
   async connectSocket() {
     return new Promise((resolve, reject) => {
-      // Get auth info from cookies
       const username = document.cookie
         .split("; ")
         .find(row => row.startsWith("username="))
         ?.split("=")[1] || "Guest";
 
-      // Connect to /voice namespace
       this.socket = io("/voice", {
         auth: { username, lobbyId: this.roomId },
         reconnection: true,
@@ -290,7 +254,6 @@ class VoiceRoom {
         reconnectionDelay: 1000
       });
 
-      // Connection events
       this.socket.on("connect", () => {
         console.log("[Voice] Socket connected:", this.socket.id);
         resolve();
@@ -305,10 +268,8 @@ class VoiceRoom {
         console.log("[Voice] Socket disconnected:", reason);
       });
 
-      // Set up voice event handlers
       this.setupSocketHandlers();
 
-      // Timeout
       setTimeout(() => {
         if (!this.socket.connected) {
           reject(new Error("Connection timeout"));
@@ -317,49 +278,51 @@ class VoiceRoom {
     });
   }
 
-  /**
-   * Set up handlers for voice events from server
-   */
   setupSocketHandlers() {
-    // Receive list of existing users when we join
     this.socket.on(EVENTS.ROOM_USERS, async ({ users }) => {
       console.log("[Voice] Room users:", users.length);
       
-      // Create peer connections to each existing user
       for (const user of users) {
         await this.createPeerConnection(user.socketId, true);
       }
     });
 
-    // New user joined the room
     this.socket.on(EVENTS.USER_JOINED, async ({ socketId, username }) => {
       console.log(`[Voice] User joined: ${username} (${socketId})`);
-      
-      // They will initiate the connection to us
-      // We just need to be ready to receive their offer
     });
 
-    // User left the room
     this.socket.on(EVENTS.USER_LEFT, ({ socketId, username }) => {
       console.log(`[Voice] User left: ${username} (${socketId})`);
       this.closePeer(socketId);
     });
 
-    // Receive WebRTC offer from a peer
     this.socket.on(EVENTS.OFFER, async ({ senderId, senderName, offer }) => {
-      console.log(`[Voice] Received offer from ${senderName}`);
+      console.log(`[Voice] Received offer from ${senderName} (${senderId})`);
       
       try {
-        // Create peer connection if we don't have one
-        const pc = await this.createPeerConnection(senderId, false);
+        let pc = this.peers.get(senderId);
         
-        // Set remote description (their offer)
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        if (!pc) {
+          pc = await this.createPeerConnection(senderId, false);
+        }
         
-        // Flush any buffered ICE candidates
+        const isCollision = pc.signalingState !== "stable";
+        if (isCollision) {
+          console.log(`[Voice] Offer collision detected, rolling back...`);
+          await Promise.all([
+            pc.setLocalDescription({ type: "rollback" }),
+            pc.setRemoteDescription(new RTCSessionDescription(offer))
+          ]);
+        } else {
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        }
+        
+        if (this.localStream) {
+          this.addLocalTracksToPeer(pc, senderId);
+        }
+        
         await this.flushPendingCandidates(senderId);
         
-        // Create and send answer
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         
@@ -368,14 +331,13 @@ class VoiceRoom {
           answer: pc.localDescription
         });
         
-        console.log(`[Voice] Sent answer to ${senderName}`);
+        console.log(`[Voice] ✅ Sent answer to ${senderName}`);
         
       } catch (error) {
         console.error("[Voice] Error handling offer:", error);
       }
     });
 
-    // Receive WebRTC answer from a peer
     this.socket.on(EVENTS.ANSWER, async ({ senderId, answer }) => {
       console.log(`[Voice] Received answer from ${senderId}`);
       
@@ -390,21 +352,18 @@ class VoiceRoom {
       }
     });
 
-    // Receive ICE candidate from a peer
     this.socket.on(EVENTS.ICE_CANDIDATE, async ({ senderId, candidate }) => {
       if (!candidate) return;
       
       const pc = this.peers.get(senderId);
       
       if (pc && pc.remoteDescription) {
-        // Connection ready, add candidate directly
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (error) {
           console.error("[Voice] Error adding ICE candidate:", error);
         }
       } else {
-        // Buffer candidate until connection is ready
         if (!this.pendingCandidates.has(senderId)) {
           this.pendingCandidates.set(senderId, []);
         }
@@ -412,23 +371,12 @@ class VoiceRoom {
       }
     });
 
-    // Error from server
     this.socket.on(EVENTS.ERROR, (error) => {
       console.error("[Voice] Server error:", error);
     });
   }
 
-  // ==========================================================================
-  // WEBRTC PEER CONNECTIONS
-  // ==========================================================================
-
-  /**
-   * Create a peer connection to another user
-   * @param {string} peerId - Socket ID of the peer
-   * @param {boolean} initiator - If true, we create and send the offer
-   */
   async createPeerConnection(peerId, initiator) {
-    // Clean up existing connection if any
     if (this.peers.has(peerId)) {
       this.closePeer(peerId);
     }
@@ -438,7 +386,6 @@ class VoiceRoom {
     const pc = new RTCPeerConnection(RTC_CONFIG);
     this.peers.set(peerId, pc);
 
-    // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         this.socket.emit(EVENTS.ICE_CANDIDATE, {
@@ -448,12 +395,9 @@ class VoiceRoom {
       }
     };
 
-    // Handle negotiation needed (when tracks are added)
     pc.onnegotiationneeded = async () => {
       console.log(`[Voice] Negotiation needed for ${peerId}`);
       
-      // Only the initiator should create a new offer
-      // This prevents both sides from sending offers simultaneously
       try {
         if (pc.signalingState === "stable") {
           const offer = await pc.createOffer();
@@ -471,7 +415,6 @@ class VoiceRoom {
       }
     };
 
-    // Handle connection state changes
     pc.oniceconnectionstatechange = () => {
       console.log(`[Voice] ICE state [${peerId}]: ${pc.iceConnectionState}`);
       
@@ -481,7 +424,6 @@ class VoiceRoom {
         console.log(`[Voice] Connection failed to ${peerId}, restarting ICE...`);
         pc.restartIce();
       } else if (pc.iceConnectionState === "disconnected") {
-        // Give it a few seconds to recover
         setTimeout(() => {
           if (pc.iceConnectionState === "disconnected") {
             console.log(`[Voice] Connection to ${peerId} lost`);
@@ -491,7 +433,6 @@ class VoiceRoom {
       }
     };
 
-    // Handle incoming audio track
     pc.ontrack = (event) => {
       console.log(`[Voice] ======================================`);
       console.log(`[Voice] RECEIVED TRACK from ${peerId}`);
@@ -503,13 +444,13 @@ class VoiceRoom {
       console.log(`[Voice] ======================================`);
       this.handleRemoteTrack(peerId, event);
     };
+    
+    this.ensureAudioTransceiver(pc);
 
-    // Add local tracks if microphone is on
     if (this.localStream) {
       this.addLocalTracksToPeer(pc, peerId);
     }
 
-    // If we're the initiator, create and send offer
     if (initiator) {
       try {
         const offer = await pc.createOffer();
@@ -529,34 +470,72 @@ class VoiceRoom {
     return pc;
   }
 
-  /**
-   * Add local audio tracks to a peer connection
-   */
   addLocalTracksToPeer(pc, peerId) {
-    if (!this.localStream) return;
+    if (!this.localStream) {
+      console.log(`[Voice] No local stream to add to ${peerId}`);
+      return;
+    }
     
-    this.localStream.getTracks().forEach(track => {
-      // Check if track already added
+    const tracks = this.localStream.getAudioTracks();
+    if (tracks.length === 0) {
+      console.log(`[Voice] No audio tracks to add to ${peerId}`);
+      return;
+    }
+    
+    console.log(`[Voice] Adding ${tracks.length} audio track(s) to peer ${peerId}`);
+    
+    tracks.forEach(track => {
       const senders = pc.getSenders();
-      const hasTrack = senders.some(s => s.track === track);
+      const existingSender = senders.find(s => s.track?.kind === "audio");
       
-      if (!hasTrack) {
+      if (existingSender) {
+        if (existingSender.track === track) {
+          console.log(`[Voice] Track already added to ${peerId}`);
+          return;
+        }
+        
+        existingSender.replaceTrack(track)
+          .then(() => console.log(`[Voice] Replaced track for ${peerId}`))
+          .catch(err => console.error(`[Voice] Failed to replace track:`, err));
+        return;
+      }
+      
+      const transceiver = this.ensureAudioTransceiver(pc);
+      if (transceiver?.sender) {
+        try {
+          if (transceiver.direction !== "sendrecv") {
+            transceiver.direction = "sendrecv";
+          }
+        } catch (err) {
+          console.warn("[Voice] Failed to set sendrecv:", err);
+        }
+        
+        transceiver.sender.replaceTrack(track)
+          .then(() => console.log(`[Voice] Reused transceiver for ${peerId}`))
+          .catch(err => console.error(`[Voice] Failed to reuse transceiver:`, err));
+        return;
+      }
+      
+      try {
         pc.addTrack(track, this.localStream);
-        console.log(`[Voice] Added local track to peer ${peerId}`);
+        console.log(`[Voice] ✅ Added track to ${peerId}`);
+      } catch (err) {
+        console.error(`[Voice] Failed to add track to ${peerId}:`, err);
       }
     });
+    
+    const currentSenders = pc.getSenders();
+    console.log(`[Voice] Peer ${peerId} now has ${currentSenders.length} sender(s)`);
   }
 
-  /**
-   * Handle incoming audio track from a peer
-   */
   handleRemoteTrack(peerId, event) {
-    if (!event.streams || !event.streams[0]) {
+    const stream = event.streams?.[0] || (event.track ? new MediaStream([event.track]) : null);
+    
+    if (!stream) {
       console.warn("[Voice] No stream in track event");
       return;
     }
 
-    // Remove existing audio element if any
     const existingAudio = this.audioElements.get(peerId);
     if (existingAudio) {
       existingAudio.pause();
@@ -564,24 +543,53 @@ class VoiceRoom {
       existingAudio.remove();
     }
 
-    // Create new audio element
     const audio = document.createElement("audio");
     audio.id = `voice-audio-${peerId}`;
     audio.autoplay = true;
     audio.playsInline = true;
-    audio.srcObject = event.streams[0];
+    audio.setAttribute("playsinline", "true");
+    audio.muted = false;
+    audio.volume = 1.0;
+    audio.srcObject = stream;
     audio.style.display = "none";
     
     document.body.appendChild(audio);
     this.audioElements.set(peerId, audio);
 
-    // Try to play (may be blocked by browser policy)
     this.tryPlayAudio(audio);
   }
 
-  /**
-   * Try to play an audio element (handles autoplay restrictions)
-   */
+  ensureAudioTransceiver(pc) {
+    if (typeof pc.addTransceiver !== "function") {
+      return null;
+    }
+    
+    const existing = this.getAudioTransceiver(pc);
+    if (existing) {
+      return existing;
+    }
+    
+    try {
+      const direction = this.localStream ? "sendrecv" : "recvonly";
+      return pc.addTransceiver("audio", { direction });
+    } catch (error) {
+      console.warn("[Voice] Failed to add audio transceiver:", error);
+      return null;
+    }
+  }
+
+  getAudioTransceiver(pc) {
+    if (typeof pc.getTransceivers !== "function") {
+      return null;
+    }
+    
+    return pc.getTransceivers().find(transceiver => {
+      const senderKind = transceiver.sender?.track?.kind;
+      const receiverKind = transceiver.receiver?.track?.kind;
+      return senderKind === "audio" || receiverKind === "audio";
+    }) || null;
+  }
+
   async tryPlayAudio(audio) {
     try {
       await audio.play();
@@ -589,16 +597,12 @@ class VoiceRoom {
     } catch (error) {
       if (error.name === "NotAllowedError") {
         console.warn("[Voice] Audio autoplay blocked - will play on user interaction");
-        // Audio will play after user interacts with the page
       } else {
         console.error("[Voice] Audio play error:", error);
       }
     }
   }
 
-  /**
-   * Flush buffered ICE candidates for a peer
-   */
   async flushPendingCandidates(peerId) {
     const candidates = this.pendingCandidates.get(peerId);
     const pc = this.peers.get(peerId);
@@ -618,18 +622,13 @@ class VoiceRoom {
     }
   }
 
-  /**
-   * Close a peer connection
-   */
   closePeer(peerId) {
-    // Close RTCPeerConnection
     const pc = this.peers.get(peerId);
     if (pc) {
       pc.close();
       this.peers.delete(peerId);
     }
     
-    // Remove audio element
     const audio = this.audioElements.get(peerId);
     if (audio) {
       audio.pause();
@@ -638,26 +637,16 @@ class VoiceRoom {
       this.audioElements.delete(peerId);
     }
     
-    // Clear pending candidates
     this.pendingCandidates.delete(peerId);
     
     console.log(`[Voice] Closed peer ${peerId}`);
   }
 
-  // ==========================================================================
-  // AUDIO HANDLING
-  // ==========================================================================
-
-  /**
-   * Set up audio unlock listener for mobile browsers
-   * Mobile browsers require a user gesture before playing audio
-   */
   setupAudioUnlock() {
     const unlock = async () => {
       if (this.audioUnlocked) return;
       
       try {
-        // Create and resume audio context
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioContext();
         
@@ -665,7 +654,6 @@ class VoiceRoom {
           await ctx.resume();
         }
         
-        // Play silent sound
         const oscillator = ctx.createOscillator();
         const gain = ctx.createGain();
         gain.gain.value = 0;
@@ -677,7 +665,6 @@ class VoiceRoom {
         this.audioUnlocked = true;
         console.log("[Voice] Audio unlocked");
         
-        // Try to play any existing audio elements
         this.audioElements.forEach(audio => {
           audio.play().catch(() => {});
         });
@@ -687,24 +674,18 @@ class VoiceRoom {
       }
     };
 
-    // Listen for user gestures
     ["click", "touchstart", "touchend", "keydown"].forEach(event => {
       document.addEventListener(event, unlock, { passive: true });
     });
   }
 
-  /**
-   * Check if all requirements are met for voice chat
-   */
   checkRequirements() {
-    // Check HTTPS (required for getUserMedia on mobile)
     if (!window.isSecureContext) {
       console.error("[Voice] HTTPS required for microphone access");
       alert("Voice chat requires HTTPS. Please use a secure connection.");
       return false;
     }
     
-    // Check getUserMedia support
     if (!navigator.mediaDevices?.getUserMedia) {
       console.error("[Voice] getUserMedia not supported");
       alert("Your browser doesn't support voice chat.");
@@ -714,9 +695,6 @@ class VoiceRoom {
     return true;
   }
 
-  /**
-   * Handle microphone errors with user-friendly messages
-   */
   handleMicError(error) {
     let message;
     
@@ -738,13 +716,6 @@ class VoiceRoom {
     alert(message);
   }
 
-  // ==========================================================================
-  // UI UPDATES
-  // ==========================================================================
-
-  /**
-   * Update UI elements to reflect current state
-   */
   updateUI() {
     if (this.micButton) {
       this.micButton.classList.toggle("active", this.isMicOn);
@@ -759,13 +730,6 @@ class VoiceRoom {
     }
   }
 
-  // ==========================================================================
-  // DEBUG / STATUS
-  // ==========================================================================
-
-  /**
-   * Get current voice room status
-   */
   getStatus() {
     const status = {
       isJoined: this.isJoined,
@@ -810,9 +774,6 @@ class VoiceRoom {
     return status;
   }
 
-  /**
-   * Force try to play all audio elements
-   */
   forcePlayAudio() {
     console.log("[Voice] Force playing all audio elements...");
     this.audioElements.forEach((audio, peerId) => {
@@ -825,9 +786,6 @@ class VoiceRoom {
     });
   }
 
-  /**
-   * Test speaker with a beep
-   */
   async testSpeaker() {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -862,11 +820,6 @@ class VoiceRoom {
   }
 }
 
-// ============================================================================
-// EXPORT SINGLETON INSTANCE
-// ============================================================================
-
 export const voiceRoom = new VoiceRoom();
 
-// Expose to window for debugging
 window.voiceRoom = voiceRoom;

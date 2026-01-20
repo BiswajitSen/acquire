@@ -199,7 +199,6 @@ class SocketManager {
       room.add(socket.id);
       socket.join(`voice:${id}`);
       
-      // Return socket ID for client-side tie-breaking
       if (callback) callback({ success: true, users: existingUsers, socketId: socket.id });
     });
 

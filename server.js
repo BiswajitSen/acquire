@@ -49,7 +49,6 @@ const main = () => {
 
   const socketBroadcaster = setupSocketServer(io, lobbyManager);
   
-  // Set up voice chat signaling
   setupVoice(io);
 
   app.set("socketBroadcaster", socketBroadcaster);

@@ -1,6 +1,3 @@
-/**
- * Game States Enum
- */
 const GAME_STATES = {
   SETUP: "setup",
   PLACE_TILE: "place-tile",
@@ -14,9 +11,6 @@ const GAME_STATES = {
   DEFUNCT_SELECTION: "defunct-selection",
 };
 
-/**
- * Valid state transitions
- */
 const STATE_TRANSITIONS = {
   [GAME_STATES.SETUP]: [GAME_STATES.PLACE_TILE],
   [GAME_STATES.PLACE_TILE]: [
@@ -42,10 +36,6 @@ const STATE_TRANSITIONS = {
   [GAME_STATES.GAME_END]: [],
 };
 
-/**
- * GameStateManager handles game state transitions with validation.
- * Implements a state machine pattern for clear game flow control.
- */
 class GameStateManager {
   #currentState;
   #stateInfo;
@@ -57,38 +47,22 @@ class GameStateManager {
     this.#stateHistory = [{ state: initialState, timestamp: Date.now() }];
   }
 
-  /**
-   * Get current state
-   */
   get state() {
     return this.#currentState;
   }
 
-  /**
-   * Get state info/metadata
-   */
   get info() {
     return { ...this.#stateInfo };
   }
 
-  /**
-   * Set state info/metadata
-   */
   setInfo(info) {
     this.#stateInfo = { ...this.#stateInfo, ...info };
   }
 
-  /**
-   * Clear state info
-   */
   clearInfo() {
     this.#stateInfo = {};
   }
 
-  /**
-   * Transition to a new state
-   * @throws {Error} if transition is not valid
-   */
   transitionTo(newState, info = {}) {
     if (!this.canTransitionTo(newState)) {
       throw new Error(
@@ -107,48 +81,29 @@ class GameStateManager {
     return this;
   }
 
-  /**
-   * Force transition to a state (bypasses validation)
-   * Use sparingly, mainly for loading saved games
-   */
   forceTransition(newState, info = {}) {
     this.#currentState = newState;
     this.#stateInfo = info;
     return this;
   }
 
-  /**
-   * Check if a transition is valid
-   */
   canTransitionTo(newState) {
     const validTransitions = STATE_TRANSITIONS[this.#currentState] || [];
     return validTransitions.includes(newState);
   }
 
-  /**
-   * Check if game is in a specific state
-   */
   isIn(state) {
     return this.#currentState === state;
   }
 
-  /**
-   * Check if game is in any of the given states
-   */
   isInAny(...states) {
     return states.includes(this.#currentState);
   }
 
-  /**
-   * Check if game has ended
-   */
   get isGameOver() {
     return this.#currentState === GAME_STATES.GAME_END;
   }
 
-  /**
-   * Check if game is in a merge-related state
-   */
   get isMerging() {
     return this.isInAny(
       GAME_STATES.MERGE,
@@ -158,16 +113,10 @@ class GameStateManager {
     );
   }
 
-  /**
-   * Get state history
-   */
   get history() {
     return [...this.#stateHistory];
   }
 
-  /**
-   * Serialize state for saving
-   */
   toJSON() {
     return {
       currentState: this.#currentState,
@@ -175,9 +124,6 @@ class GameStateManager {
     };
   }
 
-  /**
-   * Restore from saved state
-   */
   static fromJSON({ currentState, stateInfo }) {
     const manager = new GameStateManager(currentState);
     manager.#stateInfo = stateInfo || {};

@@ -9,16 +9,6 @@ const { GameStateManager, GAME_STATES } = require("./game-state");
 const { StockMarket } = require("./stock-market");
 const { GAME_CONFIG } = require("./game-config");
 
-/**
- * Game class - Main game orchestrator
- * Delegates to specialized components for different concerns:
- * - Board: tile placement and connectivity
- * - TileManager: tile stack operations
- * - GameStateManager: state machine
- * - StockMarket: stock operations
- * - TurnManager: turn history
- * - Merger: merger logic
- */
 class Game {
   #board;
   #tileManager;
@@ -126,12 +116,24 @@ class Game {
   }
 
   placeTile(username, position) {
-    const player = this.#players.find(p => p.username === username);
+    if (!this.#stateManager.isIn(GAME_STATES.PLACE_TILE)) {
+      throw new Error("Cannot place tile in current state");
+    }
+    
+    const currentPlayer = this.#currentPlayer();
+    if (currentPlayer.username !== username) {
+      throw new Error("Not your turn");
+    }
+    
+    if (!currentPlayer.hasTileAt(position)) {
+      throw new Error("You don't have this tile");
+    }
+    
     const tile = this.#board.placeTile(position, "incorporated");
     this.#turnManager.consolidateActivity(tile);
     this.#connectedTiles = this.#board.findConnectedTiles(position);
     const groupedTiles = this.#board.groupTilesByCorporation(this.#connectedTiles);
-    player.placeTile(position);
+    currentPlayer.placeTile(position);
     this.#handleTilePlacement(groupedTiles);
   }
 

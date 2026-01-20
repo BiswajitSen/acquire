@@ -1,12 +1,5 @@
 const { groupBy } = require("lodash");
 
-/**
- * StockMarket handles all stock-related operations.
- * Responsibilities:
- * - Buy and sell stocks
- * - Calculate majority/minority shareholders
- * - Distribute bonuses
- */
 class StockMarket {
   #corporations;
   #players;
@@ -16,10 +9,6 @@ class StockMarket {
     this.#players = players;
   }
 
-  /**
-   * Process a stock purchase for a player
-   * @returns {boolean} Whether the purchase was successful
-   */
   buyStock(player, corporationName) {
     const corporation = this.#corporations[corporationName];
     const { isActive, stocks, price } = corporation.stats();
@@ -34,10 +23,6 @@ class StockMarket {
     return true;
   }
 
-  /**
-   * Process multiple stock purchases
-   * @returns {string[]} List of successfully purchased corporation names
-   */
   buyStocks(player, purchases) {
     const successful = [];
 
@@ -50,9 +35,6 @@ class StockMarket {
     return successful;
   }
 
-  /**
-   * Sell stocks back to a corporation
-   */
   sellStock(player, corporationName, quantity) {
     const corporation = this.#corporations[corporationName];
     const { stocks } = player.portfolio();
@@ -69,9 +51,6 @@ class StockMarket {
     return true;
   }
 
-  /**
-   * Trade defunct stocks for acquirer stocks (2:1 ratio)
-   */
   tradeStocks(player, defunctName, acquirerName, defunctQuantity) {
     const defunct = this.#corporations[defunctName];
     const acquirer = this.#corporations[acquirerName];
@@ -90,9 +69,6 @@ class StockMarket {
     return true;
   }
 
-  /**
-   * Find majority and minority shareholders for a corporation
-   */
   findShareholderGroups(corporationName) {
     const getStockCount = player => player.portfolio().stocks[corporationName] || 0;
     const stockholders = this.#players.filter(player => getStockCount(player) > 0);
@@ -120,10 +96,6 @@ class StockMarket {
     };
   }
 
-  /**
-   * Distribute majority/minority bonuses for a corporation
-   * @returns {Object} Stats about the bonus distribution
-   */
   distributeBonuses(corporationName) {
     const corporation = this.#corporations[corporationName];
     const { majorityPrice, minorityPrice } = corporation.stats();
@@ -178,9 +150,6 @@ class StockMarket {
     return stats;
   }
 
-  /**
-   * Liquidate all stocks in a corporation (for game end)
-   */
   liquidateCorporation(corporationName) {
     const corporation = this.#corporations[corporationName];
     const { price } = corporation.stats();
@@ -197,9 +166,6 @@ class StockMarket {
     });
   }
 
-  /**
-   * Get purchasable corporations (active with available stocks)
-   */
   getPurchasableCorps(playerBalance) {
     return Object.entries(this.#corporations)
       .filter(([, corp]) => {

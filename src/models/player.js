@@ -57,6 +57,7 @@ class Player {
       const tile = this.#tiles[tileID];
       if (tile && tile.isPlaced) {
         this.#tiles[tileID] = this.#newTile;
+        return;
       }
     }
   }
@@ -66,11 +67,30 @@ class Player {
     this.#replaceWithUsedTile();
   }
 
+  hasTileAt(position) {
+    return this.#tiles.some(
+      tile =>
+        tile && !tile.isPlaced && tile.position.x === position.x && tile.position.y === position.y
+    );
+  }
+
   placeTile(position) {
     const targetTile = this.#tiles.find(
       tile =>
         tile && tile.position.x === position.x && tile.position.y === position.y
     );
+
+    if (!targetTile) {
+      throw new Error("Tile not found in player's hand");
+    }
+
+    if (targetTile.isPlaced) {
+      throw new Error("Tile already placed");
+    }
+
+    if (targetTile.exchange === "yes") {
+      throw new Error("Cannot place unplayable tile");
+    }
 
     targetTile.isPlaced = true;
   }

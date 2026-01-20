@@ -219,6 +219,7 @@ const displayTile = (tileElement, position) => {
 
 const attachListener = (tileElement, tile) => {
   tileElement.onclick = () => {
+    disablePlayerTiles();
     tileElement.classList.add("used-tile");
     setUpTiles(tile);
   };
@@ -769,21 +770,17 @@ const setupSocketListeners = (gameService) => {
   });
 };
 
-// Mobile mic button is now handled by voiceRoom.bindUI()
-
 const initializeGame = () => {
   setupGame().then(gameService => {
     setupSocketListeners(gameService);
     renderGame();
     gameService.render();
     
-    // Join voice room with the game/lobby ID
     const lobbyId = getLobbyIdFromUrl();
     voiceRoom.join(lobbyId).catch(err => {
       console.error("Failed to join voice room:", err);
     });
     
-    // Bind UI elements for mic button (handles both desktop and mobile)
     voiceRoom.bindUI("voice-toggle", ".voice-status");
   });
 

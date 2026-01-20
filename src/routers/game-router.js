@@ -22,7 +22,11 @@ const placeTile = asyncHandler((req, res) => {
   
   const position = validators.position(req.body);
   
-  game.placeTile(username, position);
+  try {
+    game.placeTile(username, position);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
   
   const socketBroadcaster = req.app.get("socketBroadcaster");
   if (socketBroadcaster) socketBroadcaster.broadcastGameUpdate(lobbyId);

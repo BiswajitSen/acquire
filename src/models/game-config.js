@@ -1,8 +1,3 @@
-/**
- * Game Configuration
- * Centralized configuration for game constants and rules.
- */
-
 const GAME_CONFIG = {
   BOARD_ROWS: 9,
   BOARD_COLS: 12,
@@ -15,18 +10,12 @@ const GAME_CONFIG = {
   TRADE_RATIO: 2,
 };
 
-/**
- * Corporation tiers with their base prices
- */
 const CORPORATION_TIERS = {
   BUDGET: { basePrice: 100, names: ["zeta", "sackson"] },
   STANDARD: { basePrice: 200, names: ["fusion", "hydra", "america"] },
   PREMIUM: { basePrice: 300, names: ["phoenix", "quantum"] },
 };
 
-/**
- * All corporation names
- */
 const CORPORATION_NAMES = [
   "phoenix",
   "quantum",
@@ -37,9 +26,6 @@ const CORPORATION_NAMES = [
   "zeta",
 ];
 
-/**
- * Stock price ranges based on corporation size
- */
 const PRICE_RANGES = [
   { minSize: 41, bonus: 900 },
   { minSize: 31, bonus: 800 },
