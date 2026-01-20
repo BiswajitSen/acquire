@@ -1223,6 +1223,20 @@
     gap: var(--space-xs);
   }
   
+  .action-prompt {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+  
+  .action-icon {
+    font-size: 1rem;
+  }
+  
+  .action-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  
   #display-panel button {
     padding: var(--space-sm);
     font-size: 0.75rem;

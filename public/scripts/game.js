@@ -382,7 +382,12 @@ const flash = (element, time = 500) => {
 };
 
 const renderTilePlaceView = (_, activityConsole) => {
-  activityConsole.innerText = "Place a tile ...";
+  activityConsole.innerHTML = `
+    <div class="action-prompt">
+      <span class="action-icon">🎯</span>
+      <span class="action-text">Place a tile</span>
+    </div>
+  `;
   getTileContainer().classList.remove("disable-click");
   getTileSection().classList.add("highlight-player-tile");
 };
