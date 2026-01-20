@@ -1568,9 +1568,34 @@
   
   .buying-prompt,
   .refill-tile-prompt {
+    display: flex;
     flex-wrap: wrap;
     gap: var(--space-sm);
     padding: var(--space-sm);
+    justify-content: center;
+  }
+  
+  .buying-prompt .price-display {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+    order: 1;
+  }
+  
+  .buying-prompt > button {
+    order: 2;
+    min-width: 80px;
+  }
+  
+  .buying-prompt > div:not(.price-display):not(.selected-stocks) {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    order: 2;
+  }
+  
+  .buying-prompt .selected-stocks {
+    order: 0;
   }
   
   .selected-stocks {
@@ -1588,7 +1613,7 @@
   }
   
   .total-price {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
   
   #players {
