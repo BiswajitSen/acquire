@@ -448,6 +448,29 @@ class VoiceRoom {
       }
     };
 
+    // Handle negotiation needed (when tracks are added)
+    pc.onnegotiationneeded = async () => {
+      console.log(`[Voice] Negotiation needed for ${peerId}`);
+      
+      // Only the initiator should create a new offer
+      // This prevents both sides from sending offers simultaneously
+      try {
+        if (pc.signalingState === "stable") {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          
+          this.socket.emit(EVENTS.OFFER, {
+            targetId: peerId,
+            offer: pc.localDescription
+          });
+          
+          console.log(`[Voice] Sent renegotiation offer to ${peerId}`);
+        }
+      } catch (error) {
+        console.error("[Voice] Renegotiation error:", error);
+      }
+    };
+
     // Handle connection state changes
     pc.oniceconnectionstatechange = () => {
       console.log(`[Voice] ICE state [${peerId}]: ${pc.iceConnectionState}`);
@@ -470,7 +493,14 @@ class VoiceRoom {
 
     // Handle incoming audio track
     pc.ontrack = (event) => {
-      console.log(`[Voice] Received audio track from ${peerId}`);
+      console.log(`[Voice] ======================================`);
+      console.log(`[Voice] RECEIVED TRACK from ${peerId}`);
+      console.log(`[Voice] Track kind:`, event.track?.kind);
+      console.log(`[Voice] Track enabled:`, event.track?.enabled);
+      console.log(`[Voice] Track muted:`, event.track?.muted);
+      console.log(`[Voice] Track readyState:`, event.track?.readyState);
+      console.log(`[Voice] Streams count:`, event.streams?.length);
+      console.log(`[Voice] ======================================`);
       this.handleRemoteTrack(peerId, event);
     };
 
@@ -737,22 +767,98 @@ class VoiceRoom {
    * Get current voice room status
    */
   getStatus() {
-    return {
+    const status = {
       isJoined: this.isJoined,
       roomId: this.roomId,
       socketId: this.socketId,
       socketConnected: this.socket?.connected || false,
       isMicOn: this.isMicOn,
       localStreamActive: this.localStream?.active || false,
+      localTracks: this.localStream?.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        muted: t.muted,
+        readyState: t.readyState
+      })) || [],
       peerCount: this.peers.size,
       peers: Array.from(this.peers.entries()).map(([id, pc]) => ({
-        id,
+        id: id.substring(0, 8) + "...",
         iceConnectionState: pc.iceConnectionState,
-        connectionState: pc.connectionState
+        connectionState: pc.connectionState,
+        signalingState: pc.signalingState,
+        localTracks: pc.getSenders().map(s => s.track?.kind || "none"),
+        remoteTracks: pc.getReceivers().map(r => ({
+          kind: r.track?.kind,
+          enabled: r.track?.enabled,
+          muted: r.track?.muted,
+          readyState: r.track?.readyState
+        }))
       })),
-      audioElements: this.audioElements.size,
+      audioElementCount: this.audioElements.size,
+      audioElements: Array.from(this.audioElements.entries()).map(([id, audio]) => ({
+        id: id.substring(0, 8) + "...",
+        paused: audio.paused,
+        muted: audio.muted,
+        volume: audio.volume,
+        readyState: audio.readyState,
+        hasSrcObject: !!audio.srcObject
+      })),
       audioUnlocked: this.audioUnlocked
     };
+    
+    console.log("[Voice] Status:", JSON.stringify(status, null, 2));
+    return status;
+  }
+
+  /**
+   * Force try to play all audio elements
+   */
+  forcePlayAudio() {
+    console.log("[Voice] Force playing all audio elements...");
+    this.audioElements.forEach((audio, peerId) => {
+      console.log(`[Voice] Trying to play audio for ${peerId}`);
+      audio.muted = false;
+      audio.volume = 1.0;
+      audio.play()
+        .then(() => console.log(`[Voice] ✅ Playing audio for ${peerId}`))
+        .catch(err => console.error(`[Voice] ❌ Failed to play audio for ${peerId}:`, err));
+    });
+  }
+
+  /**
+   * Test speaker with a beep
+   */
+  async testSpeaker() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      
+      if (ctx.state === "suspended") {
+        await ctx.resume();
+      }
+      
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      oscillator.type = "sine";
+      oscillator.frequency.value = 440;
+      gain.gain.value = 0.3;
+      
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      
+      oscillator.start();
+      setTimeout(() => {
+        oscillator.stop();
+        ctx.close();
+      }, 500);
+      
+      console.log("[Voice] ✅ Speaker test - you should hear a beep");
+      return true;
+    } catch (err) {
+      console.error("[Voice] ❌ Speaker test failed:", err);
+      return false;
+    }
   }
 }
 
