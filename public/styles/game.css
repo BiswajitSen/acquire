@@ -1237,6 +1237,28 @@
     letter-spacing: 0.05em;
   }
   
+  .card.action {
+    min-width: 5rem;
+    width: 5rem;
+  }
+  
+  .card.action .label {
+    font-size: 0.55rem;
+    padding: 4px;
+  }
+  
+  .card.action .body {
+    min-height: 2.5rem;
+    height: 2.5rem;
+    padding: 6px;
+  }
+  
+  .card.action .placeholder-tile {
+    width: 2rem !important;
+    height: 2rem !important;
+    font-size: 0.9rem !important;
+  }
+  
   #display-panel button {
     padding: var(--space-sm);
     font-size: 0.75rem;
