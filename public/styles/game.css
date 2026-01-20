@@ -761,9 +761,16 @@
   background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-lg);
 }
+.selected-stocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .selected-stocks .stock {
-  height: 70px;
-  width: 100px;
+  height: 55px;
+  width: 90px;
   border-radius: var(--radius-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.1);
@@ -820,6 +827,25 @@
   gap: 1.5rem;
   padding: var(--space-md) var(--space-lg);
 }
+
+.buying-prompt .selected-stocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.buying-prompt .purchase-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.buying-prompt button {
+  min-width: 100px;
+  text-align: center;
+}
 .price-display {
   display: flex;
   align-items: center;
@@ -858,6 +884,17 @@
   font-weight: 600;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
+  min-width: 100px;
+}
+
+.buying-prompt > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.buying-prompt > div button {
+  width: 100%;
 }
 .buying-prompt button:first-of-type,
 #display-panel button.confirm-btn {
