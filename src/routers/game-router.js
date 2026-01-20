@@ -138,6 +138,63 @@ const verifyHost = (req, res, next) => {
   next();
 };
 
+/**
+ * Load a saved game state
+ * POST /game/:lobbyId/load
+ * Body: Complete game state JSON
+ */
+const loadGameState = (req, res) => {
+  const gameData = req.body;
+  const { lobbyId, lobby } = req;
+  const { lobbyManager } = req.app.context;
+  
+  try {
+    const game = loadGame(gameData);
+    lobbyManager.setGame(lobbyId, game);
+    
+    // Mark lobby as expired since game is now active
+    if (lobby && !lobby.status().hasExpired) {
+      lobby.expire();
+    }
+    
+    const socketBroadcaster = req.app.get("socketBroadcaster");
+    if (socketBroadcaster) {
+      socketBroadcaster.broadcastLobbyUpdate(lobbyId);
+      socketBroadcaster.broadcastGameUpdate(lobbyId);
+    }
+    
+    res.status(201).json({ success: true, message: "Game state loaded" });
+  } catch (error) {
+    console.error("[GameLoader] Failed to load game:", error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+/**
+ * Export current game state
+ * GET /game/:lobbyId/export
+ * Returns: Complete game state JSON that can be saved and reloaded
+ */
+const exportGameState = (req, res) => {
+  const { game, lobbyId } = req;
+  
+  if (!game) {
+    return res.status(404).json({ error: "No active game found" });
+  }
+  
+  try {
+    const gameState = game.toJSON();
+    gameState.exportedAt = new Date().toISOString();
+    gameState.lobbyId = lobbyId;
+    
+    res.json(gameState);
+  } catch (error) {
+    console.error("[GameLoader] Failed to export game:", error);
+    res.status(500).json({ error: "Failed to export game state" });
+  }
+};
+
+// Legacy endpoint for backward compatibility
 const configureGame = (req, res) => {
   const gameData = req.body;
   const game = loadGame(gameData);
@@ -243,9 +300,15 @@ const createGameRouter = () => {
     next();
   });
 
+  // Game state management routes (no auth required for loading)
   router.post("/:lobbyId/test", configureGame);
+  router.post("/:lobbyId/load", loadGameState);
+  
   router.use("/:lobbyId", authorizeLobbyMember);
   router.use("/:lobbyId", trackGameActivity);
+  
+  // Export game state (requires auth)
+  router.get("/:lobbyId/export", exportGameState);
   router.get("/:lobbyId", verifyStart, serveGamePage);
   router.post("/:lobbyId/start", verifyHost, verifyStart, startGame);
   router.get("/:lobbyId/status", serveGameStats);

@@ -487,40 +487,167 @@ class Game {
     return stats;
   }
 
-  static fromJSON({ tiles, players, corporations, setupTiles, placedTiles }) {
+  /**
+   * Export complete game state for saving/loading
+   */
+  toJSON() {
+    return {
+      state: this.#stateManager.state,
+      stateInfo: this.#stateManager.info,
+      turnCount: this.#turnCount,
+      setupTiles: this.#setupTiles.map(([player, tile]) => [player.username, tile]),
+      placedTiles: this.#board.placedTiles,
+      tiles: this.#tileManager ? this.#getRemainingTiles() : [],
+      players: this.#players.map(player => ({
+        username: player.username,
+        isTakingTurn: player.isTakingTurn,
+        portfolio: player.portfolio(),
+      })),
+      corporations: Object.fromEntries(
+        Object.entries(this.#corporations).map(([name, corp]) => [
+          name,
+          {
+            name,
+            basePrice: this.#getCorporationBasePrice(name),
+            stocks: corp.stocks,
+            size: corp.size,
+            isActive: corp.isActive,
+            isSafe: corp.isSafe,
+          },
+        ])
+      ),
+    };
+  }
+
+  #getRemainingTiles() {
+    // Get remaining tiles from tile manager (tiles not yet distributed)
+    const allPlacedPositions = new Set(
+      this.#board.placedTiles.map(t => `${t.position.x},${t.position.y}`)
+    );
+    const playerTilePositions = new Set();
+    this.#players.forEach(player => {
+      const { tiles } = player.portfolio();
+      tiles.forEach(tile => {
+        if (tile) playerTilePositions.add(`${tile.position.x},${tile.position.y}`);
+      });
+    });
+
+    // Return tiles that are neither placed nor in player hands
+    const tiles = [];
+    for (let x = 0; x < GAME_CONFIG.BOARD_ROWS; x++) {
+      for (let y = 0; y < GAME_CONFIG.BOARD_COLS; y++) {
+        const key = `${x},${y}`;
+        if (!allPlacedPositions.has(key) && !playerTilePositions.has(key)) {
+          tiles.push({ position: { x, y }, isPlaced: false });
+        }
+      }
+    }
+    return tiles;
+  }
+
+  #getCorporationBasePrice(name) {
+    const basePrices = {
+      phoenix: 300,
+      quantum: 300,
+      fusion: 200,
+      hydra: 200,
+      america: 200,
+      zeta: 100,
+      sackson: 100,
+    };
+    return basePrices[name] || 200;
+  }
+
+  /**
+   * Load game from complete saved state
+   */
+  static fromJSON({ 
+    tiles, 
+    players, 
+    corporations, 
+    setupTiles, 
+    placedTiles,
+    state = GAME_STATES.PLACE_TILE,
+    stateInfo = {},
+    turnCount = 0,
+  }) {
     const game = new Game(players, () => [], corporations);
 
-    game.#stateManager.forceTransition(GAME_STATES.PLACE_TILE);
-    game.#setupTiles = setupTiles;
-    game.#turnCount = 0;
+    // Restore state
+    game.#stateManager.forceTransition(state, stateInfo);
+    
+    // Restore setup tiles (convert from [username, tile] to [player, tile])
+    game.#setupTiles = setupTiles.map(([username, tile]) => {
+      const player = players.find(p => p.username === username);
+      return [player, tile];
+    });
+    
+    // Restore turn count
+    game.#turnCount = turnCount;
 
+    // Restore board
     placedTiles.forEach(tile => {
       game.#board.placeTile(tile.position, tile.belongsTo);
     });
 
+    // Restore tile manager with remaining tiles
     if (tiles && tiles.length > 0) {
       game.#tileManager = TileManager.fromJSON(tiles, () => []);
     }
 
+    // Initialize stock market
     game.#initializeStockMarket();
-    players[0].startTurn();
-    game.#turnManager.initiateActivity(ACTIVITIES.tilePlace);
+
+    // Restore current player's turn
+    const currentPlayerIndex = turnCount % players.length;
+    players[currentPlayerIndex].startTurn();
+    
+    // Initialize turn manager with appropriate activity based on state
+    const stateToActivity = {
+      [GAME_STATES.PLACE_TILE]: ACTIVITIES.tilePlace,
+      [GAME_STATES.BUY_STOCKS]: ACTIVITIES.buyStocks,
+      [GAME_STATES.ESTABLISH_CORPORATION]: ACTIVITIES.establish,
+      [GAME_STATES.MERGE]: ACTIVITIES.merge,
+      [GAME_STATES.MERGE_CONFLICT]: ACTIVITIES.mergeConflict,
+      [GAME_STATES.ACQUIRER_SELECTION]: ACTIVITIES.acquirerSelection,
+      [GAME_STATES.DEFUNCT_SELECTION]: ACTIVITIES.defunctSelection,
+    };
+    
+    const activity = stateToActivity[state] || ACTIVITIES.tilePlace;
+    game.#turnManager.initiateActivity(activity);
 
     return game;
   }
 }
 
+/**
+ * Load game from saved JSON data
+ * Converts raw JSON to proper Game instance with all classes instantiated
+ */
 const loadGame = gameData => {
   const data = JSON.parse(JSON.stringify(gameData));
+  
+  // Convert player data to Player instances
+  const players = data.players.map(playerData => {
+    const player = Player.fromJSON({
+      username: playerData.username,
+      portfolio: playerData.portfolio,
+    });
+    return player;
+  });
+  
+  // Convert corporation data to Corporation instances
+  const corporations = Object.fromEntries(
+    Object.entries(data.corporations).map(([name, corpData]) => [
+      name,
+      Corporation.fromJSON({ ...corpData, name }),
+    ])
+  );
+  
   return Game.fromJSON({
     ...data,
-    players: gameData.players.map(player => Player.fromJSON(player)),
-    corporations: Object.fromEntries(
-      Object.entries(gameData.corporations).map(([name, data]) => [
-        name,
-        Corporation.fromJSON({ ...data, name }),
-      ])
-    ),
+    players,
+    corporations,
   });
 };
 
