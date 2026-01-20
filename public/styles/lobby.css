@@ -184,70 +184,98 @@
 
 @media (max-width: 640px) {
   #page {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   #room-info {
     min-width: auto;
     width: 100%;
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   #message,
   #animation {
-    font-size: 1.2rem;
-  }
-  
-  #players {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
-    padding: var(--space-md);
-  }
-  
-  #players .player {
-    padding: var(--space-md);
-    min-height: 100px;
-    overflow: hidden;
-  }
-  
-  #players .profile-picture {
-    width: 44px;
-    height: 44px;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  
-  #players .name {
-    font-size: 0.75rem;
-    min-width: 60px;
-  }
-  
-  #start-btn {
-    padding: 0.8rem 2rem;
     font-size: 1rem;
   }
-}
-
-@media (max-width: 400px) {
+  
   #players {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-sm);
+    gap: 8px;
+    padding: 8px;
   }
   
   #players .player {
-    padding: var(--space-sm);
-    min-height: 80px;
-    gap: var(--space-xs);
+    padding: 10px;
+    min-height: auto;
+    max-height: 90px;
+    overflow: hidden;
+    gap: 6px;
   }
   
   #players .profile-picture {
     width: 36px;
     height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     font-size: 1rem;
+    flex-shrink: 0;
   }
   
   #players .name {
     font-size: 0.7rem;
-    padding: 2px 6px;
+    min-width: auto;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  #players .name-container {
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  #start-btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  #page {
+    padding: var(--space-sm);
+  }
+  
+  #room-info {
+    padding: var(--space-sm);
+  }
+  
+  #players {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+  
+  #players .player {
+    padding: 8px;
+    max-height: 80px;
+    gap: 4px;
+  }
+  
+  #players .profile-picture {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    font-size: 0.85rem;
+  }
+  
+  #players .name {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+  
+  #start-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
   }
 }
