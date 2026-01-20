@@ -591,34 +591,37 @@ const createDealIcon = (type, quantity) => {
 };
 
 const createBonusTable = ({ majority, minority }) => {
-  const bonusTable = generateComponent([
-    "div",
+  // Wrap bonus table in a card for consistent styling
+  return createCard(
+    "bonuses",
     [
       [
         "div",
         [
-          ["span", "👑", { class: "bonus-icon" }],
-          ["h5", "Majority"],
-          ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
-          ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
+          [
+            "div",
+            [
+              ["span", "👑", { class: "bonus-icon" }],
+              ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+              ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
+            ],
+            { class: "merge-bonus-column majority" },
+          ],
+          [
+            "div",
+            [
+              ["span", "🥈", { class: "bonus-icon" }],
+              ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+              ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
+            ],
+            { class: "merge-bonus-column minority" },
+          ],
         ],
-        { class: "merge-bonus-column majority" },
-      ],
-      [
-        "div",
-        [
-          ["span", "🥈", { class: "bonus-icon" }],
-          ["h5", "Minority"],
-          ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
-          ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
-        ],
-        { class: "merge-bonus-column minority" },
+        { class: "merge-bonus-table" },
       ],
     ],
-    { class: "merge-bonus-table" },
-  ]);
-
-  return bonusTable;
+    "done extra-width-card"
+  );
 };
 
 const PENDING_CARD_GENERATORS = {
