@@ -10,6 +10,8 @@ class VoiceChat {
   #toggleButton = null;
   #statusElement = null;
   #mySocketId = null;
+  #audioContext = null;
+  #audioEnabled = false;
 
   constructor() {
     this.#toggleButton = document.getElementById("voice-toggle");
@@ -19,7 +21,45 @@ class VoiceChat {
       this.#toggleButton.addEventListener("click", () => this.toggleMic());
     }
 
+    // Enable audio on any user interaction (to bypass autoplay policy)
+    this.#setupAudioUnlock();
     this.#setupSocketListeners();
+  }
+
+  #setupAudioUnlock() {
+    const enableAudio = async () => {
+      if (this.#audioEnabled) return;
+      
+      try {
+        // Create and resume audio context
+        this.#audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.#audioContext.state === "suspended") {
+          await this.#audioContext.resume();
+        }
+        
+        // Play silent audio to unlock
+        const buffer = this.#audioContext.createBuffer(1, 1, 22050);
+        const source = this.#audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(this.#audioContext.destination);
+        source.start();
+        
+        this.#audioEnabled = true;
+        console.log("✅ Audio unlocked");
+        
+        // Try to play any existing audio elements
+        this.#audioElements.forEach((audio) => {
+          audio.play().catch(() => {});
+        });
+      } catch (err) {
+        console.error("Failed to unlock audio:", err);
+      }
+    };
+
+    // Listen for various user interactions
+    ["click", "touchstart", "keydown"].forEach(event => {
+      document.addEventListener(event, enableAudio, { once: false, passive: true });
+    });
   }
 
   async joinVoiceRoom() {
@@ -159,6 +199,18 @@ class VoiceChat {
     }
   }
 
+  #showSpeakingIndicator(speaking) {
+    const indicator = document.getElementById("voice-speaking-indicator");
+    if (indicator) {
+      indicator.classList.toggle("active", speaking);
+    }
+    
+    // Also update status element
+    if (this.#statusElement && speaking) {
+      this.#statusElement.textContent = "🔊 RECEIVING";
+    }
+  }
+
   #cleanupPeer(peerId) {
     const pc = this.#peerConnections.get(peerId);
     if (pc) {
@@ -174,6 +226,11 @@ class VoiceChat {
     }
     
     this.#pendingCandidates.delete(peerId);
+    
+    // Update indicator if no more audio
+    if (this.#audioElements.size === 0) {
+      this.#showSpeakingIndicator(false);
+    }
   }
 
   #getOrCreatePeerConnection(peerId) {
@@ -260,7 +317,13 @@ class VoiceChat {
     };
 
     pc.ontrack = (event) => {
-      console.log("Received track from:", peerId);
+      console.log("Received track from:", peerId, event.streams);
+      
+      if (!event.streams || !event.streams[0]) {
+        console.warn("No stream in track event");
+        return;
+      }
+      
       const existingAudio = this.#audioElements.get(peerId);
       if (existingAudio) {
         existingAudio.srcObject = null;
@@ -271,14 +334,32 @@ class VoiceChat {
       audio.id = `audio-${peerId}`;
       audio.autoplay = true;
       audio.playsInline = true;
+      audio.volume = 1.0;
       audio.srcObject = event.streams[0];
       
+      // Hidden audio element
+      audio.style.display = "none";
       document.body.appendChild(audio);
       this.#audioElements.set(peerId, audio);
       
-      audio.play().catch((err) => {
-        console.warn("Audio autoplay blocked:", err);
-      });
+      // Try to play with retry
+      const tryPlay = async () => {
+        try {
+          await audio.play();
+          console.log("✅ Playing audio from:", peerId);
+          this.#showSpeakingIndicator(true);
+        } catch (err) {
+          console.warn("Audio play failed, will retry on user interaction:", err.message);
+        }
+      };
+      
+      tryPlay();
+      
+      // Monitor when track ends
+      event.streams[0].onremovetrack = () => {
+        console.log("Track removed from:", peerId);
+        this.#showSpeakingIndicator(false);
+      };
     };
 
     if (this.#localStream) {
