@@ -4,10 +4,12 @@ class VoiceChat {
   #localStream = null;
   #peerConnections = new Map();
   #audioElements = new Map();
+  #pendingCandidates = new Map(); // Buffer ICE candidates until connection is ready
   #isMicOn = false;
   #isListening = false;
   #toggleButton = null;
   #statusElement = null;
+  #mySocketId = null;
 
   constructor() {
     this.#toggleButton = document.getElementById("voice-toggle");
@@ -24,14 +26,33 @@ class VoiceChat {
     if (this.#isListening) return;
     
     this.#isListening = true;
-    socketClient.voice.emit(EVENTS.VOICE_JOIN);
+    socketClient.voice.emit(EVENTS.VOICE_JOIN, {}, (response) => {
+      if (response?.socketId) {
+        this.#mySocketId = response.socketId;
+      }
+    });
   }
 
   #setupSocketListeners() {
     socketClient.voice.on(EVENTS.VOICE_OFFER, async ({ from, offer }) => {
+      console.log("Received offer from:", from);
       try {
-        const pc = this.#createPeerConnection(from);
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        const pc = this.#getOrCreatePeerConnection(from);
+        
+        // Handle offer collision - if we're in stable state or have local offer
+        if (pc.signalingState !== "stable") {
+          console.log("Signaling state not stable, rolling back");
+          await Promise.all([
+            pc.setLocalDescription({ type: "rollback" }),
+            pc.setRemoteDescription(new RTCSessionDescription(offer))
+          ]);
+        } else {
+          await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        }
+        
+        // Flush any pending ICE candidates
+        await this.#flushPendingCandidates(from);
+        
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socketClient.voice.emit(EVENTS.VOICE_ANSWER, { to: from, answer });
@@ -41,10 +62,13 @@ class VoiceChat {
     });
 
     socketClient.voice.on(EVENTS.VOICE_ANSWER, async ({ from, answer }) => {
+      console.log("Received answer from:", from);
       const pc = this.#peerConnections.get(from);
-      if (pc) {
+      if (pc && pc.signalingState === "have-local-offer") {
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(answer));
+          // Flush any pending ICE candidates
+          await this.#flushPendingCandidates(from);
         } catch (err) {
           console.error("Error setting remote description:", err);
         }
@@ -52,35 +76,79 @@ class VoiceChat {
     });
 
     socketClient.voice.on(EVENTS.VOICE_ICE_CANDIDATE, async ({ from, candidate }) => {
+      if (!candidate) return;
+      
       const pc = this.#peerConnections.get(from);
-      if (pc && candidate) {
+      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+        // Connection is ready, add candidate directly
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (err) {
           console.error("Error adding ICE candidate:", err);
         }
+      } else {
+        // Buffer candidate until connection is ready
+        console.log("Buffering ICE candidate from:", from);
+        if (!this.#pendingCandidates.has(from)) {
+          this.#pendingCandidates.set(from, []);
+        }
+        this.#pendingCandidates.get(from).push(candidate);
       }
     });
 
     socketClient.voice.on(EVENTS.VOICE_USER_JOINED, async ({ oderId }) => {
-      await this.#initiateConnection(oderId);
+      console.log("User joined voice:", oderId);
+      // Only initiate if our ID is "greater" to prevent both sides sending offers
+      if (this.#shouldInitiate(oderId)) {
+        await this.#initiateConnection(oderId);
+      }
     });
 
     socketClient.voice.on(EVENTS.VOICE_USER_LEFT, ({ oderId }) => {
+      console.log("User left voice:", oderId);
       this.#cleanupPeer(oderId);
     });
 
     socketClient.voice.on(EVENTS.VOICE_ROOM_USERS, async ({ users }) => {
+      console.log("Room users:", users);
       for (const oderId of users) {
+        // For existing users, always initiate (we're the new joiner)
         await this.#initiateConnection(oderId);
       }
     });
 
     socketClient.voice.onReconnect(() => {
+      console.log("Voice socket reconnected");
       if (this.#isListening) {
+        // Clear old connections on reconnect
+        this.#peerConnections.forEach((_, peerId) => this.#cleanupPeer(peerId));
         socketClient.voice.emit(EVENTS.VOICE_JOIN);
       }
     });
+  }
+
+  #shouldInitiate(peerId) {
+    // Simple tiebreaker: compare socket IDs
+    // If we don't know our ID, initiate anyway (fallback)
+    if (!this.#mySocketId) return true;
+    return this.#mySocketId > peerId;
+  }
+
+  async #flushPendingCandidates(peerId) {
+    const candidates = this.#pendingCandidates.get(peerId) || [];
+    const pc = this.#peerConnections.get(peerId);
+    
+    if (pc && candidates.length > 0) {
+      console.log(`Flushing ${candidates.length} pending candidates for:`, peerId);
+      for (const candidate of candidates) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error("Error adding buffered ICE candidate:", err);
+        }
+      }
+      this.#pendingCandidates.delete(peerId);
+    }
   }
 
   #cleanupPeer(peerId) {
@@ -96,6 +164,15 @@ class VoiceChat {
       audio.remove();
       this.#audioElements.delete(peerId);
     }
+    
+    this.#pendingCandidates.delete(peerId);
+  }
+
+  #getOrCreatePeerConnection(peerId) {
+    if (this.#peerConnections.has(peerId)) {
+      return this.#peerConnections.get(peerId);
+    }
+    return this.#createPeerConnection(peerId);
   }
 
   #createPeerConnection(peerId) {
@@ -151,6 +228,8 @@ class VoiceChat {
             this.#cleanupPeer(peerId);
           }
         }, 5000);
+      } else if (pc.iceConnectionState === "connected") {
+        console.log("✅ Voice connected to:", peerId);
       }
     };
 
@@ -158,7 +237,23 @@ class VoiceChat {
       console.log(`ICE gathering state [${peerId}]:`, pc.iceGatheringState);
     };
 
+    pc.onnegotiationneeded = async () => {
+      console.log("Negotiation needed for:", peerId);
+      if (this.#shouldInitiate(peerId)) {
+        try {
+          const offer = await pc.createOffer();
+          if (pc.signalingState === "stable") {
+            await pc.setLocalDescription(offer);
+            socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
+          }
+        } catch (err) {
+          console.error("Error during negotiation:", err);
+        }
+      }
+    };
+
     pc.ontrack = (event) => {
+      console.log("Received track from:", peerId);
       const existingAudio = this.#audioElements.get(peerId);
       if (existingAudio) {
         existingAudio.srcObject = null;
@@ -174,7 +269,9 @@ class VoiceChat {
       document.body.appendChild(audio);
       this.#audioElements.set(peerId, audio);
       
-      audio.play().catch(() => {});
+      audio.play().catch((err) => {
+        console.warn("Audio autoplay blocked:", err);
+      });
     };
 
     if (this.#localStream) {
@@ -189,6 +286,7 @@ class VoiceChat {
 
   async #initiateConnection(peerId) {
     try {
+      console.log("Initiating connection to:", peerId);
       const pc = this.#createPeerConnection(peerId);
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -217,11 +315,15 @@ class VoiceChat {
         video: false
       });
 
-      this.#peerConnections.forEach((pc, peerId) => {
+      this.#peerConnections.forEach((pc) => {
         this.#localStream.getTracks().forEach(track => {
-          pc.addTrack(track, this.#localStream);
+          // Check if track already added
+          const senders = pc.getSenders();
+          const hasTrack = senders.some(s => s.track === track);
+          if (!hasTrack) {
+            pc.addTrack(track, this.#localStream);
+          }
         });
-        this.#renegotiate(peerId, pc);
       });
 
       this.#isMicOn = true;
@@ -236,16 +338,6 @@ class VoiceChat {
       if (this.#statusElement) {
         this.#statusElement.textContent = "ERROR";
       }
-    }
-  }
-
-  async #renegotiate(peerId, pc) {
-    try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socketClient.voice.emit(EVENTS.VOICE_OFFER, { to: peerId, offer });
-    } catch (err) {
-      console.error("Renegotiation failed:", err);
     }
   }
 
@@ -276,11 +368,12 @@ class VoiceChat {
   leave() {
     this.stopMic();
     
-    this.#peerConnections.forEach((pc, peerId) => {
+    this.#peerConnections.forEach((_, peerId) => {
       this.#cleanupPeer(peerId);
     });
     this.#peerConnections.clear();
     this.#audioElements.clear();
+    this.#pendingCandidates.clear();
 
     this.#isListening = false;
     socketClient.voice.emit(EVENTS.VOICE_LEAVE);
