@@ -15,33 +15,43 @@ const createBonusTable = (majority, minority) => {
       [
         "div",
         [
+          ["span", "👑", { class: "bonus-icon" }],
           ["h5", "Majority"],
-          ["h5", `$${majority.bonus}`],
-          ...majority.players.map(name => ["p", name]),
+          ["p", `$${majority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+          ["div", majority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
         ],
+        { class: "bonus-column majority" },
       ],
       [
         "div",
         [
+          ["span", "🥈", { class: "bonus-icon" }],
           ["h5", "Minority"],
-          ["h5", `$${minority.bonus}`],
-          ...minority.players.map(name => ["p", name]),
+          ["p", `$${minority.bonus.toLocaleString()}`, { class: "bonus-amount" }],
+          ["div", minority.players.map(name => ["span", name, { class: "player-tag" }]), { class: "player-tags" }],
         ],
+        { class: "bonus-column minority" },
       ],
     ],
     { class: "bonus-table" },
   ];
 };
 
+const getRankIcon = (rank) => {
+  const icons = { 1: "🏆", 2: "🥈", 3: "🥉" };
+  return icons[rank] || rank;
+};
+
 const createRankElement = (player, rank) => {
+  const rankClass = rank <= 3 ? `line rank-${rank}` : "line";
   return generateComponent([
     "div",
     [
-      ["p", rank],
-      ["p", player.name],
-      ["p", `$${player.balance}`],
+      ["span", getRankIcon(rank), { class: "rank-badge" }],
+      ["p", player.name, { class: "player-name" }],
+      ["p", `$${player.balance.toLocaleString()}`, { class: "player-balance" }],
     ],
-    { class: "line" },
+    { class: rankClass },
   ]);
 };
 
@@ -49,16 +59,19 @@ const generateRankTable = playerRanks => {
   const rankTable = generateComponent([
     "div",
     [
-      ["div", "Leader Board", { class: "label rank-card-header" }],
+      ["div", [
+        ["span", "🏅", { class: "header-icon" }],
+        ["span", "Final Standings"],
+      ], { class: "rank-card-header" }],
       [
         "div",
         [
           [
             "div",
             [
-              ["p", "Rank"],
-              ["p", "Name"],
-              ["p", "Balance"],
+              ["p", "#"],
+              ["p", "Player"],
+              ["p", "Net Worth"],
             ],
             { class: "headers" },
           ],
@@ -103,21 +116,46 @@ const createBonusCard = ({ corporation, majority, minority }) => {
 
 const renderGameResult = ({ players, bonuses }) => {
   const playerRanks = rankPlayers(players);
+  const winner = playerRanks[0];
+  
   const resultWrapper = generateComponent([
     "div",
-    [["h1", "Game Over !!"]],
+    [
+      ["div", [
+        ["div", "🎉", { class: "celebration-emoji left" }],
+        ["h1", "Game Over"],
+        ["div", "🎉", { class: "celebration-emoji right" }],
+      ], { class: "result-title" }],
+      ["div", [
+        ["p", "Winner", { class: "winner-label" }],
+        ["h2", winner.name, { class: "winner-name" }],
+        ["p", `$${winner.balance.toLocaleString()}`, { class: "winner-balance" }],
+      ], { class: "winner-highlight" }],
+    ],
     { class: "flex result-wrapper" },
   ]);
+  
   const resultSection = generateComponent([
     "div",
     "",
     { class: "result-section" },
   ]);
+  
+  const bonusSectionTitle = generateComponent([
+    "div",
+    [
+      ["span", "💰", { class: "section-icon" }],
+      ["span", "Shareholder Bonuses"],
+    ],
+    { class: "bonus-section-title" },
+  ]);
+  
   const bonusSection = generateComponent([
     "div",
     "",
     { class: "bonus-section" },
   ]);
+  
   const closeBtn = generateComponent([
     "div",
     "×",
@@ -130,7 +168,7 @@ const renderGameResult = ({ players, bonuses }) => {
   bonusSection.append(...bonusCards);
 
   closeBtn.onclick = () => resultPage.remove();
-  resultWrapper.append(closeBtn, resultSection, bonusSection);
+  resultWrapper.append(closeBtn, resultSection, bonusSectionTitle, bonusSection);
   resultPage.append(resultWrapper);
   document.body.append(resultPage);
 };

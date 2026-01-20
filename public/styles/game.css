@@ -745,12 +745,39 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 #info-card.hide {
   display: none;
@@ -758,17 +785,28 @@
 #info-close-btn,
 .bonus-close-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: 2rem;
-  color: var(--text-primary);
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 #info-close-btn:hover,
 .bonus-close-btn:hover {
-  color: var(--danger);
-  transform: scale(1.1);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: rotate(90deg);
 }
 #info-icon {
   position: absolute;
@@ -967,94 +1005,308 @@
   text-align: center;
 }
 .result-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--space-2xl);
-  max-width: 800px;
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 900px;
+  width: 90%;
   position: relative;
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(251, 191, 36, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: slideUp 0.5s ease-out;
+  overflow: hidden;
 }
-.result-wrapper h1 {
+
+.result-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+  border-radius: 24px 24px 0 0;
+}
+
+.result-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.result-title h1 {
   font-family: "Orbitron", sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.celebration-emoji {
+  font-size: 2rem;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.celebration-emoji.right {
+  animation-delay: 0.2s;
+}
+
+/* Winner Highlight Section */
+.winner-highlight {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
   text-align: center;
-  margin-bottom: var(--space-xl);
-  padding-bottom: var(--space-md);
-  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.winner-highlight::before {
+  content: '👑';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.winner-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #fbbf24;
+  margin-bottom: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.winner-name {
+  font-family: "Orbitron", sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0.25rem 0;
+  text-shadow: 0 0 30px rgba(251, 191, 36, 0.4);
+}
+
+.winner-balance {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #34d399;
+  font-family: "JetBrains Mono", monospace;
 }
 .game-over {
   flex-direction: column;
   gap: var(--space-md);
 }
+
+.result-section {
+  margin-bottom: 1.5rem;
+}
+
 .ranks {
-  background: var(--bg-dark);
-  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   overflow: hidden;
 }
+
 .rank-card-header {
-  background: var(--primary);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  padding: var(--space-md);
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
+
+.rank-card-header .header-icon {
+  font-size: 1.25rem;
+}
+
 .rank-card-body {
-  padding: var(--space-md);
+  padding: 0.75rem;
 }
+
 .ranks .headers,
 .line {
   display: grid;
-  grid-template-columns: 3rem 1fr 1fr;
-  gap: var(--space-md);
-  padding: var(--space-sm);
-  text-align: center;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  align-items: center;
 }
+
 .ranks .headers {
   font-weight: 600;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border-color);
-}
-.bonus-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--border-color);
-}
-.bonus-card {
-  background: var(--bg-dark);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  min-width: 200px;
-}
-.bonus-card-header {
-  padding: var(--space-sm) var(--space-md);
-  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
   letter-spacing: 0.1em;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.bonus-card-body {
-  padding: var(--space-md);
+
+.line {
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
-.bonus-table {
-  display: flex;
-  gap: var(--space-lg);
-  padding: var(--space-sm);
+
+.line:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
-.bonus-table > div {
-  flex: 1;
+
+.line.rank-1 {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.05) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.line.rank-2 {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.05) 100%);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+.line.rank-3 {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.15) 0%, rgba(180, 83, 9, 0.05) 100%);
+  border: 1px solid rgba(180, 83, 9, 0.2);
+}
+
+.rank-badge {
+  font-size: 1.5rem;
   text-align: center;
 }
-.bonus-table h5 {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-bottom: var(--space-xs);
+
+.player-name {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 1rem;
 }
-.bonus-table p {
-  font-size: 0.75rem;
-  padding: var(--space-xs) var(--space-sm);
-  background: var(--bg-card);
-  border-radius: var(--radius-sm);
-  margin-top: var(--space-xs);
+
+.player-balance {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: #34d399;
+  font-size: 1rem;
+}
+.bonus-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e2e8f0;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-icon {
+  font-size: 1.25rem;
+}
+
+.bonus-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.bonus-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.bonus-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.bonus-card-header {
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bonus-card-body {
+  padding: 0.75rem;
+}
+
+.bonus-table {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.bonus-column {
+  flex: 1;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.bonus-column.majority {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.bonus-column.minority {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.1) 0%, rgba(156, 163, 175, 0.03) 100%);
+  border: 1px solid rgba(156, 163, 175, 0.15);
+}
+
+.bonus-icon {
+  font-size: 1.25rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.bonus-column h5 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.bonus-amount {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #34d399;
+  margin-bottom: 0.5rem;
+}
+
+.player-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.player-tag {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #e2e8f0;
 }
 .deal-defunct-stocks {
   flex-direction: column;
@@ -1875,19 +2127,45 @@
   
   .result-wrapper {
     max-width: 95vw;
-    padding: var(--space-lg);
+    padding: 1.5rem;
     max-height: 90vh;
     overflow-y: auto;
   }
   
-  .result-wrapper h1 {
-    font-size: 1.2rem;
+  .result-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .celebration-emoji {
+    font-size: 1.25rem;
+  }
+  
+  .winner-name {
+    font-size: 1.25rem;
+  }
+  
+  .winner-balance {
+    font-size: 1rem;
+  }
+  
+  .winner-highlight::before {
+    font-size: 1.5rem;
+    top: -5px;
   }
   
   .ranks .headers,
   .line {
-    grid-template-columns: 2rem 1fr 1fr;
-    font-size: 0.8rem;
+    grid-template-columns: 2.5rem 1fr auto;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .rank-badge {
+    font-size: 1.25rem;
+  }
+  
+  .bonus-section {
+    grid-template-columns: 1fr;
   }
   
   .deal-options {
