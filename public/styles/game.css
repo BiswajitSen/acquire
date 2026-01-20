@@ -1565,35 +1565,36 @@
     font-size: 0.75rem;
     min-height: 44px;
   }
+
+  #display-panel > p {
+    font-size: 0.7rem !important;
+    white-space: nowrap;
+    margin: 0.25rem 0;
+    text-align: center;
+  }
   
   .buying-prompt,
   .refill-tile-prompt {
     display: flex;
-    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    padding: var(--space-sm);
+    gap: 0.4rem;
+    padding: var(--space-xs);
   }
-  
+
   .buying-prompt .price-display {
-    order: 1;
+    font-size: 0.65rem !important;
+    padding: 0.25rem 0.4rem !important;
+    flex: 0 0 auto;
   }
-  
+
   .buying-prompt > button {
-    order: 2;
-  }
-  
-  .buying-prompt > div:not(.price-display):not(.selected-stocks) {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 0.5rem;
-    order: 2;
-  }
-  
-  .buying-prompt > div:not(.price-display):not(.selected-stocks) button {
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.75rem !important;
-    min-width: 70px !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.6rem !important;
+    min-width: auto !important;
+    min-height: 32px !important;
+    flex: 0 0 auto;
   }
   
   .buying-prompt .selected-stocks {
