@@ -209,22 +209,67 @@ const removeHighlight = tile => {
   onBoardTile.classList.remove("highlight");
 };
 
+const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+
+let selectedTileElement = null;
+let currentTiles = [];
+
+const clearAllHighlights = () => {
+  currentTiles.forEach(tile => {
+    if (tile) removeHighlight(tile);
+  });
+  if (selectedTileElement) {
+    selectedTileElement.classList.remove("tile-selected");
+    selectedTileElement = null;
+  }
+};
+
+const setupMobileTileTouch = (tileElement, tile) => {
+  tileElement.addEventListener("touchstart", (e) => {
+    if (tile.exchange === "yes") return;
+    
+    e.preventDefault();
+    
+    if (selectedTileElement === tileElement) {
+      return;
+    }
+    
+    clearAllHighlights();
+    
+    selectedTileElement = tileElement;
+    tileElement.classList.add("tile-selected");
+    highlightTile(tile);
+  }, { passive: false });
+};
+
 const setUpHoverEventForTiles = tiles => {
   const tileContainer = getTileContainer();
+  currentTiles = tiles;
 
-  tileContainer.onmouseover = () => {
-    tiles.forEach(highlightTile);
-  };
+  if (isMobile()) {
+    document.addEventListener("touchstart", (e) => {
+      const isOnTile = e.target.closest(".tile");
+      const isOnBoard = e.target.closest("#game-board");
+      if (!isOnTile && !isOnBoard) {
+        clearAllHighlights();
+      }
+    });
+  } else {
+    tileContainer.onmouseover = () => {
+      tiles.forEach(highlightTile);
+    };
 
-  tileContainer.onmouseleave = () => {
-    tiles.forEach(removeHighlight);
-  };
+    tileContainer.onmouseleave = () => {
+      tiles.forEach(removeHighlight);
+    };
+  }
 };
 
 const displayAndSetupAccountTiles = gameStatus => {
   const { tiles } = gameStatus.portfolio;
   const tileElements = getTileElements();
-  setUpHoverEventForTiles(tiles.filter(tile => tile));
+  const validTiles = tiles.filter(tile => tile);
+  setUpHoverEventForTiles(validTiles);
 
   tiles.forEach((tile, tileID) => {
     const tileElement = tileElements[tileID];
@@ -238,6 +283,11 @@ const displayAndSetupAccountTiles = gameStatus => {
     displayTile(tileElement, tile.position);
     addVisualAttribute(tileElement, tile);
     attachListener(tileElement, tile);
+    
+    if (isMobile()) {
+      setupMobileTileTouch(tileElement, tile);
+    }
+    
     if (tile.exchange === "yes") {
       tileElement.onclick = () => {};
       tileElement.classList.add("unplayable-tile");
