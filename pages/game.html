@@ -345,6 +345,13 @@
           </svg>
           Corps
         </button>
+        <button class="mobile-panel-btn mobile-mic-btn" id="mobile-voice-toggle">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          Mic
+        </button>
         <button class="mobile-panel-btn" data-panel="portfolio">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
@@ -355,7 +362,7 @@
     </div>
     
     <script>
-      document.querySelectorAll('.mobile-panel-btn').forEach(btn => {
+      document.querySelectorAll('.mobile-panel-btn[data-panel]').forEach(btn => {
         btn.addEventListener('click', () => {
           const panel = btn.dataset.panel;
           const section = document.getElementById(panel + '-section');
@@ -378,6 +385,21 @@
           }
         });
       });
+      
+      const mobileMicBtn = document.getElementById('mobile-voice-toggle');
+      const mainVoiceToggle = document.getElementById('voice-toggle');
+      
+      if (mobileMicBtn && mainVoiceToggle) {
+        mobileMicBtn.addEventListener('click', () => {
+          mainVoiceToggle.click();
+          mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
+        });
+        
+        const observer = new MutationObserver(() => {
+          mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
+        });
+        observer.observe(mainVoiceToggle, { attributes: true, attributeFilter: ['class'] });
+      }
     </script>
   </body>
 </html>
