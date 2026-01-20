@@ -1367,61 +1367,67 @@
   }
   
   #mobile-history-panel .history-cards .card {
-    flex-shrink: 0;
-    min-width: 7rem;
-    width: 7rem;
-    height: 6rem;
-    background: var(--bg-dark);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    flex-shrink: 0 !important;
+    min-width: 7rem !important;
+    width: 7rem !important;
+    min-height: 6rem !important;
+    height: 6rem !important;
+    max-height: 6rem !important;
+    background: var(--bg-dark) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   
   #mobile-history-panel .history-cards .card.done {
-    border-color: var(--success);
-    background: linear-gradient(145deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
+    border-color: var(--success) !important;
+    background: linear-gradient(145deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%) !important;
   }
   
   #mobile-history-panel .history-cards .card .label {
-    font-size: 0.6rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 6px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 6px !important;
+    background: var(--bg-card) !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    flex-shrink: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
   }
   
   #mobile-history-panel .history-cards .card.done .label {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
-    color: #4ade80;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%) !important;
+    color: #4ade80 !important;
   }
   
   #mobile-history-panel .history-cards .card .body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    flex: 1;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
   
   #mobile-history-panel .history-cards .card .body .tile {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    background: linear-gradient(145deg, #3a4a5d 0%, #2a3a4d 100%);
-    border: 1px solid rgba(100, 130, 160, 0.4);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-primary);
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    background: linear-gradient(145deg, #3a4a5d 0%, #2a3a4d 100%) !important;
+    border: 1px solid rgba(100, 130, 160, 0.4) !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--text-primary) !important;
   }
   
   #mobile-history-panel .history-cards:empty::after {
