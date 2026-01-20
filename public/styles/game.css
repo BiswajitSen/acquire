@@ -539,6 +539,24 @@
   }
   100% { transform: scale(1); box-shadow: none; }
 }
+
+/* Merger tile blinking animation */
+.space.merger-tile {
+  animation: mergerBlink 0.8s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes mergerBlink {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.8), inset 0 0 10px rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(251, 191, 36, 1), inset 0 0 15px rgba(251, 191, 36, 0.4);
+    border-color: #fbbf24;
+  }
+}
+
 #portfolio {
   gap: var(--space-sm);
   padding: var(--space-sm);

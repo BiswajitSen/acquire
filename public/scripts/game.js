@@ -394,6 +394,13 @@ const animateTile = (position, transitionType, duration = 1000) => {
   setTimeout(() => tile.classList.remove(transitionType), duration);
 };
 
+const clearMergerTileAnimation = () => {
+  const existingMergerTile = document.querySelector(".space.merger-tile");
+  if (existingMergerTile) {
+    existingMergerTile.classList.remove("merger-tile");
+  }
+};
+
 const renderBoard = ({ placedTiles, state }) => {
   placedTiles.forEach(({ position, belongsTo }) =>
     fillSpace(position, belongsTo)
@@ -401,6 +408,17 @@ const renderBoard = ({ placedTiles, state }) => {
 
   const newTilePlaced = placedTiles.at(-1);
   animateTile(newTilePlaced.position, "new-tile");
+  
+  // Clear any existing merger tile animation
+  clearMergerTileAnimation();
+  
+  // Add blinking animation to merger tile during merge state
+  if (state === "merge") {
+    const board = getBoard();
+    const tileId = newTilePlaced.position.x * 12 + newTilePlaced.position.y;
+    const mergerTile = board[tileId];
+    mergerTile.classList.add("merger-tile");
+  }
 };
 
 const isSamePlayer = (self, currentPlayer) =>
