@@ -769,12 +769,31 @@ const setupSocketListeners = (gameService) => {
   });
 };
 
+const setupMobileMicButton = () => {
+  const mobileMicBtn = document.getElementById('mobile-voice-toggle');
+  const mainVoiceToggle = document.getElementById('voice-toggle');
+  
+  if (mobileMicBtn) {
+    mobileMicBtn.addEventListener('click', () => {
+      voiceChat.toggleMic();
+    });
+    
+    if (mainVoiceToggle) {
+      const observer = new MutationObserver(() => {
+        mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
+      });
+      observer.observe(mainVoiceToggle, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+};
+
 const initializeGame = () => {
   setupGame().then(gameService => {
     setupSocketListeners(gameService);
     renderGame();
     gameService.render();
     voiceChat.joinVoiceRoom();
+    setupMobileMicButton();
   });
 
   setupHistory();

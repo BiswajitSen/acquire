@@ -754,18 +754,14 @@
 }
 .selected-stocks {
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 0.5rem 1rem;
   background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-lg);
-}
-.selected-stocks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
 }
 
 .selected-stocks .stock {
@@ -843,9 +839,12 @@
 .buying-prompt .selected-stocks {
   display: flex;
   flex-direction: row;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
+  justify-content: center;
   order: 0;
+  flex-basis: 100%;
 }
 
 .buying-prompt button {
@@ -1603,13 +1602,18 @@
   }
   
   .selected-stocks {
+    display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.5rem;
+    max-width: 140px;
+    margin: 0 auto;
   }
   
   .selected-stocks .stock {
     width: 60px;
     height: 42px;
+    flex: 0 0 auto;
   }
   
   .price-display {
@@ -1669,12 +1673,14 @@
   }
   
   .mobile-mic-btn.active {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);
-    border-color: #22c55e;
-    color: #4ade80;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    border-color: #22c55e !important;
+    color: white !important;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
   }
   
   .mobile-mic-btn.active svg {
+    fill: white !important;
     animation: voicePulse 1.5s ease-in-out infinite;
   }
   

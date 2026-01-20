@@ -221,6 +221,12 @@ class Purchase {
   }
 
   #selectStocks() {
+    const mobileCorpBtn = document.querySelector('.mobile-panel-btn[data-panel="corporation"]');
+    const corporationSection = document.getElementById("corporation-section");
+    
+    if (mobileCorpBtn) mobileCorpBtn.classList.add("attention-needed");
+    if (corporationSection) corporationSection.classList.add("highlight-selection");
+    
     this.#corporations
       .map(([name, { price }]) => {
         const corp = document.getElementById(name);
@@ -341,6 +347,8 @@ class Purchase {
 
   #generateConfirmCancel(totalPrice) {
     const corporationsContainer = getCorporations();
+    const corporationSection = document.getElementById("corporation-section");
+    const mobileCorpBtn = document.querySelector('.mobile-panel-btn[data-panel="corporation"]');
     const cannotPurchase = this.#portfolio.balance < totalPrice;
     const balanceElement = this.#priceElement(cannotPurchase, totalPrice);
     const confirmButton = generateComponent([
@@ -356,6 +364,8 @@ class Purchase {
       confirmButton.onclick = () => {
         this.#confirmPurchase().then(refillTile);
         corporationsContainer.classList.remove("selectable");
+        if (corporationSection) corporationSection.classList.remove("highlight-selection");
+        if (mobileCorpBtn) mobileCorpBtn.classList.remove("attention-needed");
         [...corporationsContainer.children].forEach(c =>
           c.classList.add("non-selectable")
         );
@@ -371,6 +381,8 @@ class Purchase {
     skipButton.onclick = () => {
       refillTile();
       getCorporations().classList.remove("selectable");
+      if (corporationSection) corporationSection.classList.remove("highlight-selection");
+      if (mobileCorpBtn) mobileCorpBtn.classList.remove("attention-needed");
       [...corporationsContainer.children].forEach(c =>
         c.classList.add("non-selectable")
       );

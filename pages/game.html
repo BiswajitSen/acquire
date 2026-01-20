@@ -400,20 +400,6 @@
         });
       });
       
-      const mobileMicBtn = document.getElementById('mobile-voice-toggle');
-      const mainVoiceToggle = document.getElementById('voice-toggle');
-      
-      if (mobileMicBtn && mainVoiceToggle) {
-        mobileMicBtn.addEventListener('click', () => {
-          mainVoiceToggle.click();
-          mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
-        });
-        
-        const observer = new MutationObserver(() => {
-          mobileMicBtn.classList.toggle('active', mainVoiceToggle.classList.contains('active'));
-        });
-        observer.observe(mainVoiceToggle, { attributes: true, attributeFilter: ['class'] });
-      }
     </script>
   </body>
 </html>
