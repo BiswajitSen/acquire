@@ -11,7 +11,7 @@ const createApp = (lobbiesRouter, lobbyRouter, gameRouter, context) => {
   app.context = context;
 
   app.use(logRequest);
-  app.use(express.json({ limit: "10kb" }));
+  app.use(express.json({ limit: "1mb" })); // Increased for game state loading
   app.use(cookieParser());
   app.use(sanitizeMiddleware);
   
