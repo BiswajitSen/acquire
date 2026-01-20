@@ -183,13 +183,71 @@
 
 
 @media (max-width: 640px) {
+  #page {
+    padding: var(--space-lg);
+  }
+  
   #room-info {
     min-width: auto;
     width: 100%;
     padding: var(--space-lg);
   }
   
+  #message,
+  #animation {
+    font-size: 1.2rem;
+  }
+  
   #players {
     grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+  
+  #players .player {
+    padding: var(--space-md);
+    min-height: 100px;
+    overflow: hidden;
+  }
+  
+  #players .profile-picture {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  
+  #players .name {
+    font-size: 0.75rem;
+    min-width: 60px;
+  }
+  
+  #start-btn {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  #players {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+  
+  #players .player {
+    padding: var(--space-sm);
+    min-height: 80px;
+    gap: var(--space-xs);
+  }
+  
+  #players .profile-picture {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  
+  #players .name {
+    font-size: 0.7rem;
+    padding: 2px 6px;
   }
 }

@@ -338,12 +338,26 @@
         <img src="/images/cards/info-card.svg" alt="info-card" />
       </div>
       
+      <div id="mobile-history-panel">
+        <div class="panel-header">
+          <span class="panel-title">Previous Turn</span>
+          <button class="panel-close" id="mobile-history-close">×</button>
+        </div>
+        <div class="history-cards" id="mobile-history-cards"></div>
+      </div>
+      
       <nav class="mobile-panel-toggle">
         <button class="mobile-panel-btn" data-panel="corporation">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
           </svg>
           Corps
+        </button>
+        <button class="mobile-panel-btn" id="mobile-history-toggle">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          </svg>
+          History
         </button>
         <button class="mobile-panel-btn mobile-mic-btn" id="mobile-voice-toggle">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

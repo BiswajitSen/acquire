@@ -5,10 +5,12 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-xl);
+  padding: var(--space-lg) var(--space-xl);
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: thin;
   flex: 1;
+  min-height: 120px;
 }
 
 .action-prompt {
@@ -310,6 +312,29 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.card.waiting {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%);
+}
+
+.card.waiting .label {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+  color: #fbbf24;
+}
+
+.waiting-tile {
+  background: linear-gradient(145deg, rgba(50, 55, 65, 0.8) 0%, rgba(35, 40, 50, 0.9) 100%) !important;
+  border: 2px solid rgba(251, 191, 36, 0.4) !important;
+  color: rgba(251, 191, 36, 0.7) !important;
+  font-size: 0.8rem !important;
+  animation: waitingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes waitingPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 

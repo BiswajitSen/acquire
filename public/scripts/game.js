@@ -116,6 +116,42 @@ const setupHistory = () => {
     const isExpanded = historyPane.classList.contains("expanded");
     historyButton.value = isExpanded ? "Close" : "Previous Turn";
   };
+  
+  const mobileHistoryToggle = document.getElementById("mobile-history-toggle");
+  const mobileHistoryPanel = document.getElementById("mobile-history-panel");
+  const mobileHistoryClose = document.getElementById("mobile-history-close");
+  
+  if (mobileHistoryToggle && mobileHistoryPanel) {
+    const toggleMobileHistory = () => {
+      const isVisible = mobileHistoryPanel.classList.contains("visible");
+      mobileHistoryPanel.classList.toggle("visible");
+      mobileHistoryToggle.classList.toggle("active");
+      
+      if (!isVisible) {
+        syncMobileHistoryCards();
+      }
+    };
+    
+    mobileHistoryToggle.onclick = toggleMobileHistory;
+    
+    if (mobileHistoryClose) {
+      mobileHistoryClose.onclick = toggleMobileHistory;
+    }
+  }
+};
+
+const syncMobileHistoryCards = () => {
+  const historyPane = getHistoryPane();
+  const mobileHistoryCards = document.getElementById("mobile-history-cards");
+  
+  if (!historyPane || !mobileHistoryCards) return;
+  
+  mobileHistoryCards.innerHTML = "";
+  
+  Array.from(historyPane.children).forEach(card => {
+    const clone = card.cloneNode(true);
+    mobileHistoryCards.appendChild(clone);
+  });
 };
 
 const getBalanceContainer = () => document.querySelector("#balance-container");
@@ -325,9 +361,27 @@ const syncMobileTiles = () => {
   });
 };
 
+const highlightPlayerTilesOnBoard = tiles => {
+  const validTiles = tiles.filter(tile => tile && tile.exchange !== "yes");
+  validTiles.forEach(tile => {
+    const boardCell = getBoardTile(tile.position);
+    boardCell.classList.add("player-tile-indicator");
+  });
+};
+
+const clearPlayerTileIndicators = () => {
+  const board = getBoard();
+  board.forEach(cell => cell.classList.remove("player-tile-indicator"));
+};
+
 const displayPlayerProfile = gameStatus => {
   displayAndSetupAccountTiles(gameStatus);
   syncMobileTiles();
+  
+  if (isMobile()) {
+    clearPlayerTileIndicators();
+    highlightPlayerTilesOnBoard(gameStatus.portfolio.tiles);
+  }
 };
 
 const animateTile = (position, transitionType, duration = 1000) => {
@@ -524,19 +578,19 @@ const createBonusTable = ({ majority, minority }) => {
 
 const PENDING_CARD_GENERATORS = {
   [ACTIVITIES.tilePlace]: () => {
-    return createCard("TILE");
+    return createCard("PLACING", [["div", "...", { class: "tile waiting-tile" }]], "waiting");
   },
 
   [ACTIVITIES.establish]: () => {
-    return createCard("FOUNDED");
+    return createCard("FOUNDING", "", "waiting");
   },
 
   [ACTIVITIES.buyStocks]: () => {
-    return createCard("PURCHASED");
+    return createCard("BUYING", "", "waiting");
   },
 
   [ACTIVITIES.merge]: ({ acquirer, defunct }) => {
-    return createCard("MERGING");
+    return createCard("MERGING", "", "waiting");
   },
 };
 
