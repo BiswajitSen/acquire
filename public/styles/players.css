@@ -153,3 +153,79 @@
   opacity: 1;
   background: rgba(255, 255, 255, 0.05);
 }
+
+@media (max-width: 768px) {
+  #players {
+    padding: var(--space-xs) var(--space-sm);
+    gap: var(--space-xs);
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .player:not([hidden]) {
+    padding: var(--space-xs) var(--space-sm);
+    gap: var(--space-xs);
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+  }
+  
+  .player:not([hidden]) .avatar {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .player:not([hidden]) .name {
+    font-size: 0.7rem;
+  }
+  
+  .player:not([hidden]).active .avatar {
+    transform: scale(1.05);
+    border-width: 2px;
+  }
+  
+  .player:not([hidden]).active::before {
+    left: -0.8rem;
+    font-size: 0.6rem;
+  }
+  
+  .player:not([hidden]).active::after {
+    font-size: 0.45rem;
+    padding: 1px 4px;
+    top: -5px;
+    right: -4px;
+  }
+  
+  .player:not([hidden]).self .name::after {
+    font-size: 0.5rem;
+    padding: 0.1rem 0.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #players {
+    gap: 4px;
+  }
+  
+  .player:not([hidden]) {
+    padding: 4px 8px;
+  }
+  
+  .player:not([hidden]) .avatar {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .player:not([hidden]) .name {
+    font-size: 0.6rem;
+  }
+  
+  .player:not([hidden]).active::before {
+    display: none;
+  }
+  
+  .player:not([hidden]).self .name::after {
+    font-size: 0.45rem;
+    padding: 1px 3px;
+  }
+}
