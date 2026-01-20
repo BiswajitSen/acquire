@@ -2,11 +2,8 @@ const getActivityConsole = () => document.querySelector("#activity-console");
 const getDisplayPanel = () => document.querySelector("#display-panel");
 const getCorporations = () => document.querySelector("#corporations");
 const getTileContainer = () => document.querySelector("#tile-container");
-const placeNewTile = tileElements => {
-  tileElements.forEach(tileElement => {
-    tileElement.classList.remove("used-tile");
-  });
-};
+// Removed - tile updates are now handled by the socket GAME_UPDATE event
+// which properly fetches and displays new tile data
 
 const createBonusTable = (majority, minority) => {
   return [
@@ -180,18 +177,8 @@ const getGameResult = () => {
 };
 
 const refillTile = () => {
-  const transitionDelay = 1000;
-  fetch(`${getGameBaseUrl()}/end-turn`, { method: "POST" }).then(() => {
-    const tileElements = getTileElements();
-    placeNewTile(tileElements);
-    setTimeout(() => removeHighlight(tileElements), transitionDelay);
-  });
-};
-
-const removeHighlight = tileElements => {
-  tileElements.forEach(tileElement =>
-    tileElement.classList.remove("highlight")
-  );
+  // POST to end turn - the socket GAME_UPDATE event will handle tile refresh
+  fetch(`${getGameBaseUrl()}/end-turn`, { method: "POST" });
 };
 
 const getTileElements = () => {
