@@ -377,6 +377,20 @@ class Game {
       this.#merger.end();
       this.#markUnplayableTiles();
 
+      // Add incorporated tiles to the acquirer's size
+      // (these weren't added during the merge because isMerging was true)
+      const incorporatedTiles = this.#connectedTiles.filter(
+        ({ belongsTo }) => belongsTo === "incorporated"
+      );
+      const acquirerCorp = this.#corporations[this.#merger.acquirer];
+      acquirerCorp.increaseSize(incorporatedTiles.length);
+      this.#board.assignTilesToCorporation(incorporatedTiles, this.#merger.acquirer);
+      
+      if (acquirerCorp.stats().size > 10) {
+        acquirerCorp.markSafe();
+        this.#markUnplayableTiles();
+      }
+
       const groupedTiles = this.#board.groupTilesByCorporation(this.#connectedTiles);
       this.#handleTilePlacement(groupedTiles);
     }
