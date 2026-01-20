@@ -501,9 +501,11 @@ const renderEstablishCorporationView = ({ corporations }, activityConsole) => {
   activityConsole.innerText = "Select a corporation to establish...";
   const corporationsContainer = getCorporations();
   const corporationSection = document.querySelector("#corporation-section");
+  const mobileCorpBtn = document.querySelector('[data-panel="corporation"]');
   
   corporationsContainer.classList.add("selectable");
   corporationSection.classList.add("highlight-selection");
+  if (mobileCorpBtn) mobileCorpBtn.classList.add("attention-needed");
 
   Object.entries(corporations)
     .filter(([, corp]) => !corp.isActive)
@@ -514,6 +516,7 @@ const renderEstablishCorporationView = ({ corporations }, activityConsole) => {
         establishCorporation({ name });
         corporationsContainer.classList.remove("selectable");
         corporationSection.classList.remove("highlight-selection");
+        if (mobileCorpBtn) mobileCorpBtn.classList.remove("attention-needed");
         [...corporationsContainer.children].forEach(c =>
           c.classList.add("non-selectable")
         );
