@@ -156,76 +156,112 @@
 
 @media (max-width: 768px) {
   #players {
-    padding: var(--space-xs) var(--space-sm);
-    gap: var(--space-xs);
+    padding: 6px 10px;
+    gap: 8px;
     overflow-x: auto;
-    justify-content: flex-start;
+    justify-content: center;
     -webkit-overflow-scrolling: touch;
+    background: linear-gradient(180deg, rgba(15, 20, 30, 0.95) 0%, rgba(20, 28, 40, 0.98) 100%);
   }
   
   .player:not([hidden]) {
-    padding: var(--space-xs) var(--space-sm);
-    gap: var(--space-xs);
+    padding: 6px 10px;
+    gap: 6px;
     flex-shrink: 0;
-    border-radius: var(--radius-md);
+    border-radius: 20px;
+    background: rgba(30, 40, 55, 0.6);
+    border: 1px solid rgba(80, 100, 130, 0.3);
   }
   
   .player:not([hidden]) .avatar {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
   }
   
   .player:not([hidden]) .name {
     font-size: 0.7rem;
+    font-weight: 600;
+  }
+  
+  .player:not([hidden]).active {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);
+    border: 1px solid rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+    animation: none;
   }
   
   .player:not([hidden]).active .avatar {
-    transform: scale(1.05);
-    border-width: 2px;
-  }
-  
-  .player:not([hidden]).active::before {
-    left: -0.8rem;
-    font-size: 0.6rem;
-  }
-  
-  .player:not([hidden]).active::after {
-    font-size: 0.45rem;
-    padding: 1px 4px;
-    top: -5px;
-    right: -4px;
-  }
-  
-  .player:not([hidden]).self .name::after {
-    font-size: 0.5rem;
-    padding: 0.1rem 0.35rem;
-  }
-}
-
-@media (max-width: 480px) {
-  #players {
-    gap: 4px;
-  }
-  
-  .player:not([hidden]) {
-    padding: 4px 8px;
-  }
-  
-  .player:not([hidden]) .avatar {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .player:not([hidden]) .name {
-    font-size: 0.6rem;
+    transform: none;
+    border: 2px solid #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
   }
   
   .player:not([hidden]).active::before {
     display: none;
   }
   
+  .player:not([hidden]).active::after {
+    display: none;
+  }
+  
+  .player:not([hidden]).active .name {
+    color: #4ade80;
+  }
+  
+  .player:not([hidden]).active .name::before {
+    content: "● ";
+    font-size: 0.5rem;
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  
   .player:not([hidden]).self .name::after {
-    font-size: 0.45rem;
-    padding: 1px 3px;
+    content: "(you)";
+    font-size: 0.55rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.5);
+    background: none;
+    padding: 0;
+    margin-left: 4px;
+    box-shadow: none;
+  }
+  
+  .player:not([hidden]).active.self .name::after {
+    background: none;
+    color: rgba(74, 222, 128, 0.6);
+  }
+  
+  .player:not([hidden]):not(.active) {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 480px) {
+  #players {
+    gap: 6px;
+    padding: 5px 8px;
+  }
+  
+  .player:not([hidden]) {
+    padding: 5px 8px;
+    gap: 5px;
+  }
+  
+  .player:not([hidden]) .avatar {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .player:not([hidden]) .name {
+    font-size: 0.6rem;
+  }
+  
+  .player:not([hidden]).self .name::after {
+    display: none;
   }
 }
