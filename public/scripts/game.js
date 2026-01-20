@@ -259,8 +259,25 @@ const setupInfoCard = () => {
   };
 };
 
+const syncMobileTiles = () => {
+  const mobileTilesSection = document.getElementById("mobile-tiles");
+  if (!mobileTilesSection) return;
+  
+  const tileContainer = getTileContainer();
+  if (!tileContainer) return;
+  
+  mobileTilesSection.innerHTML = "";
+  
+  Array.from(tileContainer.children).forEach(tile => {
+    const clone = tile.cloneNode(true);
+    clone.onclick = tile.onclick;
+    mobileTilesSection.appendChild(clone);
+  });
+};
+
 const displayPlayerProfile = gameStatus => {
   displayAndSetupAccountTiles(gameStatus);
+  syncMobileTiles();
 };
 
 const animateTile = (position, transitionType, duration = 1000) => {

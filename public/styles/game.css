@@ -1060,6 +1060,10 @@
   display: none;
 }
 
+.mobile-tiles-section {
+  display: none;
+}
+
 @media (max-width: 1024px) {
   #root {
     grid-template-columns: 12rem 1fr 12rem;
@@ -1088,10 +1092,11 @@
 @media (max-width: 768px) {
   #root {
     grid-template-columns: 1fr;
-    grid-template-rows: 2.5rem 1fr auto auto 55px;
+    grid-template-rows: 2.5rem 1fr auto auto auto 50px;
     grid-template-areas:
       "game-header"
       "game-board-container"
+      "mobile-tiles"
       "activity-bar"
       "players"
       "mobile-panels";
@@ -1107,6 +1112,31 @@
   #game-title {
     font-size: 1rem;
     letter-spacing: 0.1em;
+  }
+  
+  .mobile-tiles-section {
+    grid-area: mobile-tiles;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: linear-gradient(180deg, rgba(15, 20, 30, 0.95) 0%, rgba(20, 28, 40, 0.98) 100%);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-tiles-section .tile {
+    width: 48px;
+    height: 48px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  #portfolio-section .tiles {
+    display: none;
   }
   
   #corporation-section,
@@ -1129,38 +1159,37 @@
   }
   
   #game-board-container {
-    padding: var(--space-sm);
-    overflow: visible;
+    padding: var(--space-xs);
+    overflow: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 1;
     min-height: 0;
   }
   
   #game-board {
-    gap: 3px;
-    padding: var(--space-sm);
-    width: 100%;
+    gap: 2px;
+    padding: var(--space-xs);
+    width: auto;
     height: 100%;
-    max-width: 100%;
     max-height: 100%;
-    aspect-ratio: auto;
+    aspect-ratio: 12/9;
+    border-width: 2px;
   }
   
   .space {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
     min-width: 0;
     min-height: 0;
-    padding: 2px;
+    padding: 1px;
+    border-radius: 3px;
   }
   
   .space span:first-child {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
   }
   
   .space span:last-child {
-    font-size: 0.5rem;
     display: none;
   }
   
