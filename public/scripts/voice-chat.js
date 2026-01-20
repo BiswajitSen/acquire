@@ -107,8 +107,26 @@ class VoiceChat {
       iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" }
-      ]
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443?transport=tcp",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ],
+      iceCandidatePoolSize: 10
     };
 
     const pc = new RTCPeerConnection(config);
@@ -123,9 +141,21 @@ class VoiceChat {
     };
 
     pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "disconnected") {
-        this.#cleanupPeer(peerId);
+      console.log(`ICE connection state [${peerId}]:`, pc.iceConnectionState);
+      if (pc.iceConnectionState === "failed") {
+        console.error("ICE connection failed, attempting restart");
+        pc.restartIce();
+      } else if (pc.iceConnectionState === "disconnected") {
+        setTimeout(() => {
+          if (pc.iceConnectionState === "disconnected") {
+            this.#cleanupPeer(peerId);
+          }
+        }, 5000);
       }
+    };
+
+    pc.onicegatheringstatechange = () => {
+      console.log(`ICE gathering state [${peerId}]:`, pc.iceGatheringState);
     };
 
     pc.ontrack = (event) => {
