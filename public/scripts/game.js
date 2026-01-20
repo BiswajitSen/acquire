@@ -310,13 +310,26 @@ const displayAndSetupAccountTiles = gameStatus => {
 
   tiles.forEach((tile, tileID) => {
     const tileElement = tileElements[tileID];
+    
     if (!tile) {
+      // Empty slot - mark as used
       tileElement.innerText = "";
       tileElement.classList.add("used-tile");
       tileElement.classList.remove("unplayable-tile");
       return;
     }
 
+    // Has a tile - remove used-tile class and display it
+    tileElement.classList.remove("used-tile");
+    
+    if (tile.isPlaced) {
+      // Tile was placed this turn - show as used until refill
+      tileElement.innerText = "";
+      tileElement.classList.add("used-tile");
+      tileElement.classList.remove("unplayable-tile");
+      return;
+    }
+    
     displayTile(tileElement, tile.position);
     addVisualAttribute(tileElement, tile);
     attachListener(tileElement, tile);
@@ -328,6 +341,8 @@ const displayAndSetupAccountTiles = gameStatus => {
     if (tile.exchange === "yes") {
       tileElement.onclick = () => {};
       tileElement.classList.add("unplayable-tile");
+    } else {
+      tileElement.classList.remove("unplayable-tile");
     }
   });
 };
