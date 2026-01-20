@@ -1060,20 +1060,51 @@
   flex-direction: column;
   gap: var(--space-md);
 }
+
 .deal-options {
   display: flex;
   gap: var(--space-lg);
 }
+
+.deal-options .card {
+  width: auto;
+  overflow: visible;
+}
+
+.deal-options .card .body {
+  overflow: visible;
+}
+
 .sell-box {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-sm);
 }
+
 .stock-btn {
   width: 2rem !important;
   height: 2rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
   padding: 0 !important;
   font-size: 1.2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(145deg, #3a4a5d 0%, #2a3a4d 100%) !important;
+  border: 2px solid #4a5a6d !important;
+  border-radius: var(--radius-md) !important;
+  color: #e2e8f0 !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.stock-btn:hover {
+  background: linear-gradient(145deg, #4a5a6d 0%, #3a4a5d 100%) !important;
+  border-color: #60a5fa !important;
+  transform: scale(1.05);
 }
 .player-deal {
   transform: scale(0.9);
@@ -1111,13 +1142,7 @@
 #balance-container.flash .amount {
   transform: scale(1.2);
 }
-.select-container {
-  text-align: center;
-}
-.select-container p {
-  font-weight: 500;
-  margin-bottom: var(--space-md);
-}
+/* select-container styles are in display-panel.css */
 .scale-mouse-pointer {
   transition: all var(--transition-fast);
 }
@@ -1364,6 +1389,12 @@
     overflow: hidden;
   }
   
+  #display-panel:has(.select-container),
+  #display-panel:has(.deal-defunct-stocks) {
+    max-height: none;
+    overflow: visible;
+  }
+  
   #history-button {
     display: none !important;
   }
@@ -1529,11 +1560,18 @@
   #activity-console {
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     gap: var(--space-sm);
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+  }
+  
+  #activity-console:has(.select-container),
+  #activity-console:has(.deal-defunct-stocks) {
+    justify-content: center;
+    padding: var(--space-sm);
+    overflow: visible;
   }
   
   .action-prompt {
@@ -1548,6 +1586,56 @@
   .action-text {
     font-size: 0.75rem;
     letter-spacing: 0.05em;
+  }
+  
+  .select-container {
+    padding: var(--space-xs);
+    gap: var(--space-xs);
+    width: 100%;
+  }
+  
+  .select-container p {
+    font-family: "Orbitron", sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    margin: 0;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 20px;
+  }
+  
+  .select-container .flex {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .select-container .card {
+    min-width: 5rem;
+    width: 5rem;
+    flex-shrink: 0;
+  }
+  
+  .select-container .card .label {
+    font-size: 0.55rem;
+    padding: 4px;
+    text-transform: uppercase;
+  }
+  
+  .select-container .card .body {
+    min-height: 2.8rem;
+    height: 2.8rem;
+    padding: 4px;
+  }
+  
+  .select-container .card .corp-icon.conflict {
+    width: 2rem;
+    height: 2rem;
   }
   
   .card.action {
@@ -1803,8 +1891,61 @@
   }
   
   .deal-options {
-    flex-direction: column;
-    gap: var(--space-md);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-sm);
+  }
+  
+  .deal-options .card {
+    min-width: 5.5rem;
+    width: auto;
+  }
+  
+  .deal-options .card .body {
+    min-height: 3.5rem;
+    height: auto;
+    padding: var(--space-sm);
+  }
+  
+  .deal-options .sell-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .deal-options .stock-btn {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    min-width: 1.8rem !important;
+    font-size: 1rem !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #3a4a5d 0%, #2a3a4d 100%);
+    border: 1px solid rgba(100, 130, 160, 0.5);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  
+  .deal-options .tile:not(.stock-btn) {
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .deal-defunct-stocks {
+    gap: var(--space-sm);
+  }
+  
+  .deal-defunct-stocks > .flex {
+    gap: var(--space-sm);
+  }
+  
+  .deal-defunct-stocks button:not(.stock-btn) {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.7rem;
   }
   
   .card {
@@ -1885,6 +2026,12 @@
     overflow: hidden;
   }
   
+  #display-panel:has(.select-container),
+  #display-panel:has(.deal-defunct-stocks) {
+    max-height: none;
+    overflow: visible;
+  }
+  
   #display-panel button {
     font-size: 0.7rem;
     padding: var(--space-xs) var(--space-sm);
@@ -1924,6 +2071,48 @@
     width: 2rem;
     height: 2rem;
     font-size: 0.6rem;
+  }
+  
+  .deal-options .card {
+    min-width: 4.5rem;
+  }
+  
+  .deal-options .card .label {
+    font-size: 0.5rem;
+    padding: 3px;
+  }
+  
+  .deal-options .stock-btn {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    font-size: 0.85rem !important;
+  }
+  
+  .deal-options .tile:not(.stock-btn) {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    font-size: 0.7rem !important;
+  }
+  
+  .select-container .card {
+    min-width: 4.2rem;
+    width: 4.2rem;
+  }
+  
+  .select-container .card .label {
+    font-size: 0.5rem;
+    padding: 3px;
+  }
+  
+  .select-container .card .body {
+    min-height: 2.2rem;
+    height: 2.2rem;
+  }
+  
+  .select-container .card .corp-icon.conflict {
+    width: 1.6rem;
+    height: 1.6rem;
   }
   
   #players {

@@ -3,14 +3,21 @@
 #activity-console {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-md);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
   flex: 1;
   min-height: 120px;
+}
+
+#activity-console::before,
+#activity-console::after {
+  content: "";
+  flex: 1;
+  min-width: var(--space-md);
 }
 
 .action-prompt {
