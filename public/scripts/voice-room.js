@@ -1,95 +1,208 @@
-import { io } from "https://cdn.socket.io/4.7.2/socket.io.esm.min.js";
+/**
+ * Agora Voice Chat Integration
+ * 
+ * Setup:
+ * 1. Create account at https://console.agora.io
+ * 2. Create a project (select "Testing mode" for App certificate)
+ * 3. Copy your App ID and paste below
+ */
 
-const EVENTS = {
-  JOIN: "voice:join",
-  LEAVE: "voice:leave",
-  SIGNAL: "voice:signal",
-  USER_JOINED: "voice:user-joined",
-  USER_LEFT: "voice:user-left",
-  ROOM_USERS: "voice:room-users",
-  ERROR: "voice:error"
-};
+// TODO: Replace with your Agora App ID from https://console.agora.io
+const AGORA_APP_ID = "e5e48368eb5c435a8b834ba1be60f4a3";
 
-const ICE_SERVERS = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" }
-];
+// Import Agora SDK dynamically
+let AgoraRTC = null;
 
 class VoiceRoom {
   constructor() {
-    this.socket = null;
-    this.socketId = null;
+    this.client = null;
+    this.localAudioTrack = null;
+    this.remoteUsers = new Map();
+    
     this.roomId = null;
+    this.userId = null;
     this.isJoined = false;
-    
-    this.localStream = null;
     this.isMicOn = false;
-    
-    this.peers = new Map();
     
     this.micButton = null;
     this.statusElement = null;
     this.mobileMicButton = null;
-    
-    // Unlock audio on user interaction
-    this.audioUnlocked = false;
-    document.addEventListener("click", () => this.unlockAudio(), { once: true });
   }
 
-  unlockAudio() {
-    if (this.audioUnlocked) return;
+  async loadAgoraSDK() {
+    if (AgoraRTC) return;
     
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    ctx.resume().then(() => {
-      this.audioUnlocked = true;
-      console.log("[Voice] 🔓 Audio unlocked");
-      ctx.close();
+    // Load Agora SDK from CDN
+    return new Promise((resolve, reject) => {
+      if (window.AgoraRTC) {
+        AgoraRTC = window.AgoraRTC;
+        resolve();
+        return;
+      }
+      
+      const script = document.createElement("script");
+      script.src = "https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js";
+      script.onload = () => {
+        AgoraRTC = window.AgoraRTC;
+        console.log("[Voice] Agora SDK loaded");
+        resolve();
+      };
+      script.onerror = () => reject(new Error("Failed to load Agora SDK"));
+      document.head.appendChild(script);
     });
   }
 
   async join(roomId) {
-    if (this.isJoined) {
-      this.leave();
+    if (!AGORA_APP_ID) {
+      console.error("[Voice] ❌ Agora App ID not configured!");
+      console.log("[Voice] Get your App ID from https://console.agora.io");
+      alert("Voice chat not configured. See console for instructions.");
+      return;
     }
 
-    this.roomId = roomId;
-    await this.connectSocket();
-    
-    return new Promise((resolve, reject) => {
-      this.socket.emit(EVENTS.JOIN, { roomId }, (response) => {
-        if (response?.success) {
-          this.isJoined = true;
-          this.socketId = response.socketId;
-          console.log(`[Voice] ✅ Joined room ${roomId} as ${this.socketId}`);
-          resolve(response);
-        } else {
-          reject(response?.error);
+    if (this.isJoined) {
+      await this.leave();
+    }
+
+    try {
+      await this.loadAgoraSDK();
+      
+      // Create Agora client
+      this.client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+      
+      // Set up event handlers
+      this.setupEventHandlers();
+      
+      // Get user ID from cookie
+      this.userId = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("username="))
+        ?.split("=")[1] || `user_${Date.now()}`;
+      
+      this.roomId = roomId;
+      
+      // Join the channel (room)
+      console.log(`[Voice] Joining room ${roomId}...`);
+      await this.client.join(AGORA_APP_ID, roomId, null, this.userId);
+      
+      this.isJoined = true;
+      console.log(`[Voice] ✅ Joined room ${roomId} as ${this.userId}`);
+      
+      // Subscribe to any users who are already publishing
+      await this.subscribeToExistingUsers();
+      
+      return { success: true, roomId, userId: this.userId };
+      
+    } catch (error) {
+      console.error("[Voice] ❌ Failed to join:", error);
+      throw error;
+    }
+  }
+
+  setupEventHandlers() {
+    // Handle new user publishing audio
+    this.client.on("user-published", async (user, mediaType) => {
+      console.log(`[Voice] 📡 user-published event: ${user.uid}, type: ${mediaType}`);
+      
+      if (mediaType === "audio") {
+        try {
+          console.log(`[Voice] 🎤 Subscribing to ${user.uid}...`);
+          
+          // Subscribe to the remote user's audio
+          await this.client.subscribe(user, mediaType);
+          
+          // Play the audio
+          if (user.audioTrack) {
+            user.audioTrack.play();
+            this.remoteUsers.set(user.uid, user);
+            console.log(`[Voice] 🔊 Now playing audio from ${user.uid}`);
+          } else {
+            console.warn(`[Voice] ⚠️ No audio track from ${user.uid}`);
+          }
+        } catch (error) {
+          console.error(`[Voice] ❌ Failed to subscribe to ${user.uid}:`, error);
         }
-      });
+      }
+    });
+
+    // Handle user stopping audio
+    this.client.on("user-unpublished", (user, mediaType) => {
+      console.log(`[Voice] 📡 user-unpublished event: ${user.uid}, type: ${mediaType}`);
+      
+      if (mediaType === "audio") {
+        console.log(`[Voice] 🔇 ${user.uid} stopped publishing audio`);
+        this.remoteUsers.delete(user.uid);
+      }
+    });
+
+    // Handle user joining (before they publish)
+    this.client.on("user-joined", (user) => {
+      console.log(`[Voice] 👋 ${user.uid} joined the channel`);
+    });
+
+    // Handle user leaving the channel
+    this.client.on("user-left", (user) => {
+      console.log(`[Voice] 👋 ${user.uid} left the channel`);
+      this.remoteUsers.delete(user.uid);
+    });
+
+    // Handle errors
+    this.client.on("exception", (event) => {
+      console.error("[Voice] ⚠️ Exception:", event);
+    });
+
+    // Handle connection state changes
+    this.client.on("connection-state-change", (curState, prevState) => {
+      console.log(`[Voice] 🔌 Connection: ${prevState} → ${curState}`);
     });
   }
 
-  leave() {
-    this.stopMic();
-    this.closeAllPeers();
+  async subscribeToExistingUsers() {
+    // Get all remote users who are already in the channel
+    const remoteUsers = this.client.remoteUsers;
+    console.log(`[Voice] Found ${remoteUsers.length} existing user(s) in channel`);
     
-    if (this.socket?.connected) {
-      this.socket.emit(EVENTS.LEAVE);
-      this.socket.disconnect();
+    for (const user of remoteUsers) {
+      // Check if user has published audio
+      if (user.hasAudio) {
+        try {
+          console.log(`[Voice] 🎤 Subscribing to existing user ${user.uid}...`);
+          await this.client.subscribe(user, "audio");
+          
+          if (user.audioTrack) {
+            user.audioTrack.play();
+            this.remoteUsers.set(user.uid, user);
+            console.log(`[Voice] 🔊 Now playing audio from ${user.uid}`);
+          }
+        } catch (error) {
+          console.error(`[Voice] ❌ Failed to subscribe to existing user ${user.uid}:`, error);
+        }
+      } else {
+        console.log(`[Voice] ℹ️ User ${user.uid} hasn't published audio yet`);
+      }
+    }
+  }
+
+  async leave() {
+    console.log("[Voice] Leaving room...");
+    
+    await this.stopMic();
+    
+    if (this.client) {
+      await this.client.leave();
+      this.client = null;
     }
     
-    this.socket = null;
+    this.remoteUsers.clear();
     this.isJoined = false;
     this.roomId = null;
-    this.socketId = null;
     
     console.log("[Voice] Left room");
   }
 
   async toggleMic() {
     if (this.isMicOn) {
-      this.stopMic();
+      await this.stopMic();
     } else {
       await this.startMic();
     }
@@ -98,328 +211,60 @@ class VoiceRoom {
 
   async startMic() {
     try {
-      if (!window.isSecureContext) {
-        alert("Voice chat requires HTTPS");
+      if (!this.isJoined) {
+        console.warn("[Voice] Not in a room");
         return false;
       }
 
-      console.log("[Voice] Requesting microphone...");
+      console.log("[Voice] Starting microphone...");
       
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        },
-        video: false
+      // Create local audio track
+      this.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
+        encoderConfig: "speech_low_quality",
+        AEC: true,  // Echo cancellation
+        ANS: true,  // Noise suppression
+        AGC: true   // Auto gain control
       });
       
-      const track = this.localStream.getAudioTracks()[0];
-      console.log(`[Voice] ✅ Got microphone: ${track.label}`);
-      console.log(`[Voice] Track enabled: ${track.enabled}, muted: ${track.muted}`);
-      
-      // Add audio track to all existing peers
-      this.peers.forEach((peer, peerId) => {
-        this.addTrackToPeer(peer.pc, peerId);
-      });
+      // Publish to the channel
+      await this.client.publish([this.localAudioTrack]);
       
       this.isMicOn = true;
       this.updateUI();
       
+      console.log("[Voice] ✅ Microphone started - others can hear you!");
       return true;
       
     } catch (error) {
-      console.error("[Voice] ❌ Mic error:", error);
-      alert(`Microphone error: ${error.message}`);
+      console.error("[Voice] ❌ Failed to start mic:", error);
+      
+      if (error.message?.includes("Permission denied")) {
+        alert("Microphone access denied. Please allow microphone access.");
+      } else {
+        alert(`Microphone error: ${error.message}`);
+      }
+      
       return false;
     }
   }
 
-  stopMic() {
-    if (this.localStream) {
-      this.localStream.getTracks().forEach(track => track.stop());
-      this.localStream = null;
+  async stopMic() {
+    if (this.localAudioTrack) {
+      // Unpublish from channel
+      if (this.client && this.isJoined) {
+        await this.client.unpublish([this.localAudioTrack]);
+      }
+      
+      // Stop and close the track
+      this.localAudioTrack.stop();
+      this.localAudioTrack.close();
+      this.localAudioTrack = null;
     }
     
     this.isMicOn = false;
     this.updateUI();
+    
     console.log("[Voice] Microphone stopped");
-  }
-
-  async connectSocket() {
-    return new Promise((resolve, reject) => {
-      const username = document.cookie
-        .split("; ")
-        .find(row => row.startsWith("username="))
-        ?.split("=")[1] || "Guest";
-
-      console.log(`[Voice] Connecting as ${username}...`);
-
-      this.socket = io("/voice", {
-        auth: { username, lobbyId: this.roomId },
-        reconnection: true,
-        reconnectionAttempts: 5
-      });
-
-      this.socket.on("connect", () => {
-        console.log("[Voice] ✅ Socket connected:", this.socket.id);
-        resolve();
-      });
-
-      this.socket.on("connect_error", (error) => {
-        console.error("[Voice] ❌ Connection error:", error.message);
-        reject(error);
-      });
-
-      this.setupSocketHandlers();
-
-      setTimeout(() => {
-        if (!this.socket?.connected) {
-          reject(new Error("Connection timeout"));
-        }
-      }, 10000);
-    });
-  }
-
-  setupSocketHandlers() {
-    this.socket.on(EVENTS.ROOM_USERS, ({ users }) => {
-      console.log(`[Voice] Room has ${users.length} existing user(s):`, users.map(u => u.username));
-      
-      users.forEach(user => {
-        this.createPeer(user.socketId, user.username, true);
-      });
-    });
-
-    this.socket.on(EVENTS.USER_JOINED, ({ socketId, username }) => {
-      console.log(`[Voice] 👋 ${username} joined - waiting for their offer`);
-    });
-
-    this.socket.on(EVENTS.USER_LEFT, ({ socketId, username }) => {
-      console.log(`[Voice] 👋 ${username} left`);
-      this.closePeer(socketId);
-    });
-
-    this.socket.on(EVENTS.SIGNAL, async ({ senderId, senderName, signal }) => {
-      const signalType = signal.type || (signal.candidate ? "ice-candidate" : "unknown");
-      console.log(`[Voice] 📨 Signal from ${senderName}: ${signalType}`);
-      
-      let peer = this.peers.get(senderId);
-      
-      if (!peer && signal.type === "offer") {
-        console.log(`[Voice] Creating peer for incoming offer from ${senderName}`);
-        peer = this.createPeer(senderId, senderName, false);
-      }
-      
-      if (!peer) {
-        console.warn(`[Voice] No peer found for ${senderName}, ignoring signal`);
-        return;
-      }
-      
-      try {
-        if (signal.type === "offer") {
-          console.log(`[Voice] Setting remote offer from ${senderName}`);
-          await peer.pc.setRemoteDescription(new RTCSessionDescription(signal));
-          
-          console.log(`[Voice] Creating answer for ${senderName}`);
-          const answer = await peer.pc.createAnswer();
-          await peer.pc.setLocalDescription(answer);
-          
-          console.log(`[Voice] Sending answer to ${senderName}`);
-          this.socket.emit(EVENTS.SIGNAL, {
-            targetId: senderId,
-            signal: peer.pc.localDescription
-          });
-          
-        } else if (signal.type === "answer") {
-          console.log(`[Voice] Setting remote answer from ${senderName}`);
-          await peer.pc.setRemoteDescription(new RTCSessionDescription(signal));
-          
-        } else if (signal.candidate) {
-          console.log(`[Voice] Adding ICE candidate from ${senderName}`);
-          await peer.pc.addIceCandidate(new RTCIceCandidate(signal));
-        }
-      } catch (error) {
-        console.error(`[Voice] ❌ Signal error:`, error);
-      }
-    });
-
-    this.socket.on(EVENTS.ERROR, (error) => {
-      console.error("[Voice] Server error:", error);
-    });
-  }
-
-  createPeer(peerId, peerName, initiator) {
-    console.log(`[Voice] 🔗 Creating peer to ${peerName} (initiator: ${initiator})`);
-    
-    this.closePeer(peerId);
-    
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-    const peer = { pc, audio: null, name: peerName };
-    this.peers.set(peerId, peer);
-    
-    // ICE candidates
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log(`[Voice] 🧊 Sending ICE candidate to ${peerName}`);
-        this.socket.emit(EVENTS.SIGNAL, {
-          targetId: peerId,
-          signal: event.candidate
-        });
-      }
-    };
-    
-    pc.oniceconnectionstatechange = () => {
-      console.log(`[Voice] 🧊 ICE state with ${peerName}: ${pc.iceConnectionState}`);
-    };
-    
-    pc.onconnectionstatechange = () => {
-      console.log(`[Voice] 🔌 Connection with ${peerName}: ${pc.connectionState}`);
-    };
-    
-    // IMPORTANT: Handle incoming audio track
-    pc.ontrack = (event) => {
-      console.log(`[Voice] 🎵 Received track from ${peerName}:`, event.track.kind);
-      console.log(`[Voice] Track enabled: ${event.track.enabled}, muted: ${event.track.muted}`);
-      console.log(`[Voice] Streams: ${event.streams.length}`);
-      
-      if (event.track.kind === "audio") {
-        const stream = event.streams[0] || new MediaStream([event.track]);
-        
-        // Create audio element
-        const audio = new Audio();
-        audio.srcObject = stream;
-        audio.autoplay = true;
-        audio.volume = 1.0;
-        
-        // Try to play
-        const playPromise = audio.play();
-        
-        if (playPromise) {
-          playPromise
-            .then(() => {
-              console.log(`[Voice] 🔊 Playing audio from ${peerName}`);
-            })
-            .catch(err => {
-              console.warn(`[Voice] ⚠️ Autoplay blocked for ${peerName}:`, err.message);
-              console.log("[Voice] Click anywhere to enable audio");
-              
-              // Retry on click
-              document.addEventListener("click", () => {
-                audio.play().then(() => {
-                  console.log(`[Voice] 🔊 Now playing audio from ${peerName}`);
-                }).catch(() => {});
-              }, { once: true });
-            });
-        }
-        
-        peer.audio = audio;
-      }
-    };
-    
-    // Add transceiver to receive audio (even if not sending)
-    const transceiver = pc.addTransceiver("audio", { 
-      direction: this.localStream ? "sendrecv" : "recvonly" 
-    });
-    console.log(`[Voice] Added transceiver: ${transceiver.direction}`);
-    
-    // Add our audio track if we have it
-    if (this.localStream) {
-      this.addTrackToPeer(pc, peerId);
-    }
-    
-    // If initiator, create offer
-    if (initiator) {
-      this.createAndSendOffer(pc, peerId, peerName);
-    }
-    
-    return peer;
-  }
-
-  async createAndSendOffer(pc, peerId, peerName) {
-    try {
-      console.log(`[Voice] Creating offer for ${peerName}...`);
-      const offer = await pc.createOffer();
-      
-      console.log(`[Voice] Setting local description for ${peerName}...`);
-      await pc.setLocalDescription(offer);
-      
-      console.log(`[Voice] 📤 Sending offer to ${peerName}`);
-      this.socket.emit(EVENTS.SIGNAL, {
-        targetId: peerId,
-        signal: pc.localDescription
-      });
-    } catch (error) {
-      console.error(`[Voice] ❌ Offer error for ${peerName}:`, error);
-    }
-  }
-
-  addTrackToPeer(pc, peerId) {
-    if (!this.localStream) return;
-    
-    const track = this.localStream.getAudioTracks()[0];
-    if (!track) return;
-    
-    // Get existing transceiver
-    const transceivers = pc.getTransceivers();
-    const audioTransceiver = transceivers.find(t => 
-      t.receiver.track?.kind === "audio" || t.sender.track?.kind === "audio"
-    );
-    
-    if (audioTransceiver) {
-      // Update direction to sendrecv if it was recvonly
-      if (audioTransceiver.direction === "recvonly") {
-        console.log(`[Voice] Changing transceiver to sendrecv for ${peerId.slice(0, 8)}`);
-        audioTransceiver.direction = "sendrecv";
-      }
-      
-      // Replace the track
-      console.log(`[Voice] Replacing track for peer ${peerId.slice(0, 8)}`);
-      audioTransceiver.sender.replaceTrack(track).then(() => {
-        // Need to renegotiate after changing direction
-        this.renegotiate(pc, peerId);
-      }).catch(err => {
-        console.error("[Voice] Replace track error:", err);
-      });
-    } else {
-      console.log(`[Voice] Adding new track for peer ${peerId.slice(0, 8)}`);
-      pc.addTrack(track, this.localStream);
-      this.renegotiate(pc, peerId);
-    }
-  }
-
-  async renegotiate(pc, peerId) {
-    try {
-      console.log(`[Voice] 🔄 Renegotiating with ${peerId.slice(0, 8)}...`);
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
-      this.socket.emit(EVENTS.SIGNAL, {
-        targetId: peerId,
-        signal: pc.localDescription
-      });
-      console.log(`[Voice] 📤 Sent renegotiation offer`);
-    } catch (err) {
-      console.error("[Voice] Renegotiation error:", err);
-    }
-  }
-
-  closePeer(peerId) {
-    const peer = this.peers.get(peerId);
-    if (!peer) return;
-    
-    if (peer.audio) {
-      peer.audio.pause();
-      peer.audio.srcObject = null;
-    }
-    
-    peer.pc.close();
-    this.peers.delete(peerId);
-    
-    console.log(`[Voice] Closed peer ${peerId.slice(0, 8)}`);
-  }
-
-  closeAllPeers() {
-    this.peers.forEach((_, peerId) => this.closePeer(peerId));
   }
 
   bindUI(micButtonId, statusElementSelector) {
@@ -445,78 +290,36 @@ class VoiceRoom {
     }
   }
 
-  // Debug helper
-  debug() {
-    console.log("=== VOICE DEBUG ===");
-    console.log("Joined:", this.isJoined);
-    console.log("Room:", this.roomId);
-    console.log("Socket ID:", this.socketId);
-    console.log("Socket connected:", this.socket?.connected);
-    console.log("Mic on:", this.isMicOn);
-    console.log("Local stream:", this.localStream?.active);
-    console.log("Audio unlocked:", this.audioUnlocked);
-    console.log("Peers:", this.peers.size);
-    
-    this.peers.forEach((peer, id) => {
-      console.log(`  Peer ${id.slice(0, 8)} (${peer.name}):`);
-      console.log(`    Connection: ${peer.pc.connectionState}`);
-      console.log(`    ICE: ${peer.pc.iceConnectionState}`);
-      console.log(`    Has audio element: ${!!peer.audio}`);
-      if (peer.audio) {
-        console.log(`    Audio paused: ${peer.audio.paused}`);
-        console.log(`    Audio muted: ${peer.audio.muted}`);
-        console.log(`    Audio volume: ${peer.audio.volume}`);
-      }
-      console.log(`    Senders:`, peer.pc.getSenders().map(s => s.track?.kind || "empty"));
-      console.log(`    Receivers:`, peer.pc.getReceivers().map(r => r.track?.kind || "empty"));
-    });
-    console.log("===================");
-  }
-
   getStatus() {
     return {
       joined: this.isJoined,
       room: this.roomId,
+      user: this.userId,
       micOn: this.isMicOn,
-      connected: this.socket?.connected,
-      audioUnlocked: this.audioUnlocked,
-      peerCount: this.peers.size
+      remoteUsers: Array.from(this.remoteUsers.keys()),
+      remoteUserCount: this.remoteUsers.size
     };
   }
 
-  async testMic() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("[Voice] ✅ Mic test passed:", stream.getAudioTracks()[0].label);
-      stream.getTracks().forEach(t => t.stop());
-      return true;
-    } catch (err) {
-      console.error("[Voice] ❌ Mic test failed:", err.message);
-      return false;
+  // Debug helper
+  debug() {
+    console.log("=== VOICE DEBUG ===");
+    console.log("Agora App ID configured:", !!AGORA_APP_ID);
+    console.log("Joined:", this.isJoined);
+    console.log("Room:", this.roomId);
+    console.log("User:", this.userId);
+    console.log("Mic on:", this.isMicOn);
+    console.log("Local track:", this.localAudioTrack ? "exists" : "none");
+    console.log("Remote users playing:", Array.from(this.remoteUsers.keys()));
+    
+    if (this.client) {
+      console.log("All remote users in channel:", this.client.remoteUsers.map(u => ({
+        uid: u.uid,
+        hasAudio: u.hasAudio,
+        audioTrack: !!u.audioTrack
+      })));
     }
-  }
-
-  testSpeaker() {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    osc.frequency.value = 440;
-    osc.connect(ctx.destination);
-    osc.start();
-    setTimeout(() => { osc.stop(); ctx.close(); }, 500);
-    console.log("[Voice] ✅ Speaker test - you should hear a beep");
-    return true;
-  }
-
-  // Force play all audio elements (call after clicking on page)
-  forcePlay() {
-    console.log("[Voice] Force playing all audio...");
-    this.peers.forEach((peer, id) => {
-      if (peer.audio) {
-        peer.audio.play()
-          .then(() => console.log(`[Voice] ✅ Playing ${peer.name}`))
-          .catch(e => console.error(`[Voice] ❌ Can't play ${peer.name}:`, e.message));
-      }
-    });
+    console.log("===================");
   }
 }
 
